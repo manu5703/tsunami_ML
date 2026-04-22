@@ -1,0 +1,222 @@
+dataset,group,query_no,query,tsunami_ms,tsunami_answer,numpy_ms,numpy_answer,bruteforce_ms,bruteforce_answer,speedup_x,scan_pct,match
+california,A_nearby,1,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale',10.0301,227.0,153.1166,227,143.4537,227.0,14.3,0.6,PASS
+california,A_nearby,2,SELECT COUNT(*) FROM data WHERE place = 'Mountain View',8.9769,249.0,152.515,249,152.6533,249.0,17.01,0.41,PASS
+california,A_nearby,3,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto',9.996,254.0,159.3699,254,140.1154,254.0,14.02,0.59,PASS
+california,A_nearby,4,SELECT COUNT(*) FROM data WHERE place = 'Cupertino',10.641,184.0,153.1371,184,140.6589,184.0,13.22,0.96,PASS
+california,A_nearby,5,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 5.0,7.3919,32.0,149.0981,32,141.1916,32.0,19.1,0.6,PASS
+california,A_nearby,6,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 7.0,6.5609,15.0,156.2495,15,139.0437,15.0,21.19,0.6,PASS
+california,A_nearby,7,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 9.0,11.3524,9.0,162.3689,9,149.1477,9.0,13.14,0.6,PASS
+california,A_nearby,8,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedInc >= 5.0,11.367,53.0,163.2295,53,153.4974,53.0,13.5,0.41,PASS
+california,A_nearby,9,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedInc >= 8.0,8.2798,16.0,161.4791,16,141.2487,16.0,17.06,0.41,PASS
+california,A_nearby,10,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc >= 6.0,9.3073,36.0,155.2142,36,141.1371,36.0,15.16,0.59,PASS
+california,A_nearby,11,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc >= 9.0,9.8089,9.0,158.8555,9,152.5398,9.0,15.55,0.59,PASS
+california,A_nearby,12,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc >= 11.0,10.1364,3.0,156.5526,3,155.7672,3.0,15.37,0.59,PASS
+california,A_nearby,13,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND MedInc >= 6.0,10.7659,15.0,157.6572,15,162.5012,15.0,15.09,0.96,PASS
+california,A_nearby,14,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND MedInc >= 9.0,11.1924,2.0,153.4598,2,141.464,2.0,12.64,0.96,PASS
+california,A_nearby,15,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc BETWEEN 4.0 AND 7.0,10.3158,44.0,157.5725,44,154.9393,44.0,15.02,0.6,PASS
+california,A_nearby,16,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc BETWEEN 7.0 AND 11.0,11.2154,8.0,165.7042,8,155.3714,8.0,13.85,0.6,PASS
+california,A_nearby,17,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedInc BETWEEN 5.0 AND 9.0,6.3078,40.0,182.0952,40,161.2619,40.0,25.57,0.41,PASS
+california,A_nearby,18,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc BETWEEN 6.0 AND 12.0,16.2843,35.0,155.6707,35,169.847,35.0,10.43,0.59,PASS
+california,A_nearby,19,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND MedInc BETWEEN 5.0 AND 10.0,11.2894,22.0,180.5279,22,163.9099,22.0,14.52,0.96,PASS
+california,A_nearby,20,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedHouseVal >= 3.0,11.6764,32.0,161.3885,32,164.0154,32.0,14.05,0.6,PASS
+california,A_nearby,21,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedHouseVal >= 4.0,7.5872,14.0,195.7551,14,154.4521,14.0,20.36,0.6,PASS
+california,A_nearby,22,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedHouseVal >= 3.5,5.6832,38.0,163.5013,38,148.4689,38.0,26.12,0.41,PASS
+california,A_nearby,23,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedHouseVal >= 4.0,11.649,25.0,164.6925,25,144.9301,25.0,12.44,0.59,PASS
+california,A_nearby,24,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedHouseVal >= 4.5,18.371,21.0,167.7239,21,151.5899,21.0,8.25,0.59,PASS
+california,A_nearby,25,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND MedHouseVal BETWEEN 3.0 AND 5.0,12.7362,25.0,158.6032,25,165.5508,25.0,13.0,0.96,PASS
+california,A_nearby,26,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedHouseVal BETWEEN 2.5 AND 4.5,8.307,37.0,154.5862,37,151.1211,37.0,18.19,0.6,PASS
+california,A_nearby,27,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND HouseAge <= 10,1.8067,32.0,160.332,32,162.0324,32.0,89.69,0.15,PASS
+california,A_nearby,28,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND HouseAge <= 20,3.628,85.0,193.5704,85,163.6261,85.0,45.1,0.3,PASS
+california,A_nearby,29,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND HouseAge BETWEEN 10 AND 30,4.8778,94.0,186.0996,94,170.7712,94.0,35.01,0.45,PASS
+california,A_nearby,30,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND HouseAge >= 40,4.9029,70.0,198.822,70,152.3584,70.0,31.08,0.15,PASS
+california,A_nearby,31,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND HouseAge BETWEEN 20 AND 40,10.3774,97.0,169.6956,97,160.2567,97.0,15.44,0.31,PASS
+california,A_nearby,32,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND HouseAge <= 15,4.9991,48.0,166.7715,48,182.5007,48.0,36.51,0.49,PASS
+california,A_nearby,33,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND AveRooms BETWEEN 5.0 AND 8.0,9.0695,0.0,180.792,81,159.0977,81.0,17.54,0.0,FAIL
+california,A_nearby,34,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND AveRooms >= 6.0 AND AveBedrms <= 1.5,8.4015,0.0,165.6215,27,161.3265,27.0,19.2,0.0,FAIL
+california,A_nearby,35,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND AveRooms >= 7.0,8.5893,0.0,172.7035,58,155.2925,58.0,18.08,0.0,FAIL
+california,A_nearby,36,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND AveRooms BETWEEN 4.0 AND 7.0 AND AveBedrms BETWEEN 1.0 AND 1.8,6.3517,113.0,172.3857,113,154.7218,113.0,24.36,0.37,PASS
+california,A_nearby,37,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND AveRooms >= 6.0 AND AveBedrms BETWEEN 1.0 AND 2.0,20.6764,0.0,195.0925,51,156.2777,51.0,7.56,0.0,FAIL
+california,A_nearby,38,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND AveOccup <= 2.5,6.7253,88.0,154.836,88,177.324,88.0,26.37,0.3,PASS
+california,A_nearby,39,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND AveOccup <= 3.0,8.3108,117.0,184.436,117,156.1124,117.0,18.78,0.3,PASS
+california,A_nearby,40,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND AveOccup <= 2.0,11.2482,52.0,161.213,52,156.4954,52.0,13.91,0.15,PASS
+california,A_nearby,41,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND Population BETWEEN 200 AND 2000,7.1641,164.0,179.9613,164,196.6334,164.0,27.45,0.6,PASS
+california,A_nearby,42,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND Population BETWEEN 500 AND 3000,5.9773,119.0,179.2442,119,180.0085,119.0,30.12,0.31,PASS
+california,A_nearby,43,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 7.0 AND MedHouseVal >= 3.0,12.5657,15.0,209.6746,15,164.9764,15.0,13.13,0.6,PASS
+california,A_nearby,44,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 8.0 AND MedHouseVal >= 4.0,9.6071,10.0,189.5305,10,164.8918,10.0,17.16,0.6,PASS
+california,A_nearby,45,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc >= 9.0 AND MedHouseVal >= 4.0,17.3679,9.0,166.7307,9,150.5694,9.0,8.67,0.59,PASS
+california,A_nearby,46,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedInc >= 7.0 AND HouseAge <= 30,4.8128,11.0,183.9165,11,171.6679,11.0,35.67,0.31,PASS
+california,A_nearby,47,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND MedInc >= 8.0 AND AveRooms >= 5.0,9.1518,0.0,178.5315,3,189.595,3.0,20.72,0.0,FAIL
+california,A_nearby,48,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc BETWEEN 6.0 AND 10.0 AND MedHouseVal BETWEEN 3.0 AND 5.0,10.9677,10.0,208.5369,10,163.0056,10.0,14.86,0.6,PASS
+california,A_nearby,49,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 7.0 AND MedHouseVal >= 3.0 AND HouseAge <= 30,9.3101,10.0,196.3985,10,146.7758,10.0,15.77,0.45,PASS
+california,A_nearby,50,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc >= 9.0 AND MedHouseVal >= 4.0 AND AveRooms >= 6.0,14.505,0.0,164.9687,3,182.378,3.0,12.57,0.0,FAIL
+california,A_nearby,51,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedInc >= 6.0 AND AveRooms BETWEEN 5.0 AND 8.0 AND AveBedrms BETWEEN 1.0 AND 1.8,8.8568,0.0,164.2621,11,166.0204,11.0,18.74,0.0,FAIL
+california,A_nearby,52,SELECT COUNT(*) FROM data WHERE place = 'Cupertino' AND MedInc >= 8.0 AND HouseAge <= 20 AND MedHouseVal >= 3.5,11.3858,2.0,178.2536,2,170.8172,2.0,15.0,0.49,PASS
+california,A_nearby,53,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND AveOccup <= 3.0 AND Population BETWEEN 200 AND 2000 AND MedInc >= 5.0,5.8887,13.0,186.4634,13,168.8906,13.0,28.68,0.3,PASS
+california,A_nearby,54,SELECT COUNT(*) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 8.0 AND MedHouseVal >= 4.0 AND HouseAge <= 20 AND AveRooms >= 5.0,3.134,0.0,157.6727,2,178.4904,2.0,56.95,0.0,FAIL
+california,A_nearby,55,SELECT COUNT(*) FROM data WHERE place = 'Palo Alto' AND MedInc >= 9.0 AND MedHouseVal >= 4.5 AND HouseAge <= 30 AND AveOccup <= 2.5,10.9088,2.0,161.1409,2,172.9269,2.0,15.85,0.22,PASS
+california,A_nearby,56,SELECT COUNT(*) FROM data WHERE place = 'Mountain View' AND MedInc BETWEEN 6.0 AND 11.0 AND MedHouseVal BETWEEN 3.0 AND 5.0 AND HouseAge <= 25 AND AveRooms >= 5.0,3.2766,0.0,182.3399,7,161.3252,7.0,49.24,0.0,FAIL
+california,A_nearby,57,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Sunnyvale',6.7726,1.8986,182.0251,1.8986,175.1342,1.8986,25.86,0.6,PASS
+california,A_nearby,58,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Mountain View',7.2025,2.0689,157.7583,2.0689,162.809,2.0689,22.6,0.41,PASS
+california,A_nearby,59,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Palo Alto',10.7921,2.0379,167.3931,2.0379,163.3926,2.0379,15.14,0.59,PASS
+california,A_nearby,60,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Cupertino',12.2399,1.8649,149.7838,1.8649,159.6859,1.8649,13.05,0.96,PASS
+california,A_nearby,61,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 7.0,8.609,4.8397,150.4252,4.8397,146.7757,4.8397,17.05,0.6,PASS
+california,A_nearby,62,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Palo Alto' AND MedInc >= 9.0,9.9789,5.0,160.1588,5.0,172.7614,5.0,17.31,0.59,PASS
+california,A_nearby,63,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Sunnyvale' AND HouseAge <= 20,3.2692,1.8835,175.1166,1.8835,152.8795,1.8835,46.76,0.3,PASS
+california,A_nearby,64,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Mountain View' AND MedInc BETWEEN 6.0 AND 10.0,8.9651,4.2178,177.3916,4.2178,163.4566,4.2178,18.23,0.41,PASS
+california,A_nearby,65,SELECT AVG(MedInc) FROM data WHERE place = 'Sunnyvale',12.3382,3.4112,168.054,3.4112,173.0358,3.4112,14.02,0.6,PASS
+california,A_nearby,66,SELECT AVG(MedInc) FROM data WHERE place = 'Palo Alto',9.8319,3.5612,179.1845,3.5612,168.4084,3.5612,17.13,0.59,PASS
+california,A_nearby,67,SELECT AVG(MedInc) FROM data WHERE place = 'Mountain View',8.3454,3.7435,169.724,3.7435,154.2338,3.7435,18.48,0.41,PASS
+california,A_nearby,68,SELECT AVG(MedInc) FROM data WHERE place = 'Sunnyvale' AND MedHouseVal >= 4.0,8.2423,10.778,176.2998,10.778,157.4728,10.778,19.11,0.6,PASS
+california,A_nearby,69,SELECT AVG(AveRooms) FROM data WHERE place = 'Sunnyvale',6.9945,5.8764,155.5371,5.8764,157.4396,5.8764,22.51,0.6,PASS
+california,A_nearby,70,SELECT AVG(AveRooms) FROM data WHERE place = 'Palo Alto' AND MedInc >= 8.0,9.4778,5.8144,171.0925,5.8144,156.5921,5.8144,16.52,0.59,PASS
+california,A_nearby,71,SELECT AVG(HouseAge) FROM data WHERE place = 'Sunnyvale',7.0066,27.3038,160.2736,27.3038,156.8379,27.3038,22.38,0.6,PASS
+california,A_nearby,72,SELECT AVG(HouseAge) FROM data WHERE place = 'Mountain View' AND MedInc >= 6.0,7.288,28.025,162.9175,28.025,153.4848,28.025,21.06,0.41,PASS
+california,A_nearby,73,SELECT SUM(Population) FROM data WHERE place = 'Sunnyvale',15.9609,218996.1871,164.8578,218996.1871,154.0398,218996.1871,9.65,0.6,PASS
+california,A_nearby,74,SELECT SUM(Population) FROM data WHERE place = 'Mountain View',6.046,257244.1348,155.0642,257244.1348,157.8384,257244.1348,26.11,0.41,PASS
+california,A_nearby,75,SELECT SUM(Population) FROM data WHERE place = 'Palo Alto',10.7748,268677.4825,151.2249,268677.4825,144.5844,268677.4825,13.42,0.59,PASS
+california,A_nearby,76,SELECT SUM(Population) FROM data WHERE place = 'Cupertino',11.2321,173128.1363,163.7172,173128.1363,152.2768,173128.1363,13.56,0.96,PASS
+california,A_nearby,77,SELECT SUM(Population) FROM data WHERE place = 'Sunnyvale' AND AveOccup <= 3.0,7.3786,105499.3848,208.8899,105499.3848,175.6345,105499.3848,23.8,0.3,PASS
+california,A_nearby,78,SELECT SUM(Population) FROM data WHERE place = 'Sunnyvale' AND MedInc >= 5.0,11.1814,24548.769,166.2558,24548.769,147.1294,24548.769,13.16,0.6,PASS
+california,A_nearby,79,SELECT SUM(Population) FROM data WHERE place = 'Palo Alto' AND MedHouseVal >= 4.0,10.5431,21631.1633,175.5717,21631.1633,154.9605,21631.1633,14.7,0.59,PASS
+california,A_nearby,80,SELECT COUNT(*) FROM data WHERE place = 'San Jose',96.7026,2612.0,175.0622,2612,140.1352,2612.0,1.45,10.94,PASS
+california,A_nearby,81,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 5.0,103.9166,473.0,167.7461,473,160.0825,473.0,1.54,10.94,PASS
+california,A_nearby,82,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 7.0,105.4725,204.0,153.6191,204,168.5323,204.0,1.6,10.94,PASS
+california,A_nearby,83,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 9.0,100.4184,83.0,198.4839,83,151.9622,83.0,1.51,10.94,PASS
+california,A_nearby,84,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc BETWEEN 4.0 AND 7.0,113.2434,574.0,168.6713,574,161.4689,574.0,1.43,10.94,PASS
+california,A_nearby,85,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc BETWEEN 7.0 AND 11.0,100.1549,157.0,173.8481,157,163.8744,157.0,1.64,10.94,PASS
+california,A_nearby,86,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedHouseVal >= 3.0,72.5127,471.0,157.8344,471,145.7715,471.0,2.01,3.88,PASS
+california,A_nearby,87,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedHouseVal >= 4.0,79.3381,213.0,170.4418,213,192.7869,213.0,2.43,3.88,PASS
+california,A_nearby,88,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedHouseVal BETWEEN 2.5 AND 4.5,102.8928,569.0,178.5578,569,161.0222,569.0,1.56,6.22,PASS
+california,A_nearby,89,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND HouseAge <= 10,21.7246,465.0,176.0088,465,153.7567,465.0,7.08,2.73,PASS
+california,A_nearby,90,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND HouseAge BETWEEN 10 AND 30,71.4527,1031.0,161.6704,1031,158.5379,1031.0,2.22,8.2,PASS
+california,A_nearby,91,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND HouseAge >= 40,27.635,596.0,159.8492,596,149.7422,596.0,5.42,2.73,PASS
+california,A_nearby,92,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND AveRooms BETWEEN 5.0 AND 8.0,67.932,0.0,184.1741,1062,160.647,1062.0,2.36,0.0,FAIL
+california,A_nearby,93,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND AveRooms >= 6.0 AND AveBedrms <= 1.5,59.5243,0.0,170.5367,258,175.1219,258.0,2.94,0.0,FAIL
+california,A_nearby,94,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND AveOccup <= 2.5,78.4755,946.0,177.2108,946,144.3661,946.0,1.84,5.46,PASS
+california,A_nearby,95,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND Population BETWEEN 200 AND 2000,95.8328,1950.0,179.0788,1950,148.3488,1950.0,1.55,10.94,PASS
+california,A_nearby,96,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 7.0 AND MedHouseVal >= 3.0,76.7508,204.0,179.4029,204,151.7345,204.0,1.98,3.88,PASS
+california,A_nearby,97,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 8.0 AND MedHouseVal >= 4.0,84.2698,129.0,191.3386,129,154.9682,129.0,1.84,3.88,PASS
+california,A_nearby,98,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 7.0 AND HouseAge <= 30,76.7563,108.0,161.5802,108,137.5226,108.0,1.79,8.2,PASS
+california,A_nearby,99,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 7.0 AND MedHouseVal >= 3.0 AND HouseAge <= 30,64.7636,108.0,183.4601,108,161.0587,108.0,2.49,2.92,PASS
+california,A_nearby,100,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 8.0 AND HouseAge <= 20 AND MedHouseVal >= 3.5,41.363,43.0,183.1366,43,145.431,43.0,3.52,1.95,PASS
+california,A_nearby,101,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND AveOccup <= 3.0 AND Population BETWEEN 200 AND 2000 AND MedInc >= 5.0,92.6347,185.0,160.733,185,141.7961,185.0,1.53,5.46,PASS
+california,A_nearby,102,SELECT COUNT(*) FROM data WHERE place = 'San Jose' AND MedInc >= 8.0 AND MedHouseVal >= 4.0 AND HouseAge <= 20 AND AveRooms >= 5.0,45.8102,0.0,166.1269,24,164.0923,24.0,3.58,0.0,FAIL
+california,A_nearby,103,SELECT AVG(MedHouseVal) FROM data WHERE place = 'San Jose',89.0564,1.978,161.7562,1.978,170.0459,1.978,1.91,10.94,PASS
+california,A_nearby,104,SELECT AVG(MedHouseVal) FROM data WHERE place = 'San Jose' AND MedInc >= 7.0,92.1986,4.6872,170.8783,4.6872,171.7969,4.6872,1.86,10.94,PASS
+california,A_nearby,105,SELECT AVG(MedHouseVal) FROM data WHERE place = 'San Jose' AND HouseAge <= 20,44.8659,1.9458,183.5071,1.9458,153.7266,1.9458,3.43,5.47,PASS
+california,A_nearby,106,SELECT AVG(MedInc) FROM data WHERE place = 'San Jose',99.8704,3.457,161.0533,3.457,154.7501,3.457,1.55,10.94,PASS
+california,A_nearby,107,SELECT AVG(MedInc) FROM data WHERE place = 'San Jose' AND MedHouseVal >= 4.0,83.9492,9.1789,180.5356,9.1789,169.4816,9.1789,2.02,3.88,PASS
+california,A_nearby,108,SELECT AVG(AveRooms) FROM data WHERE place = 'San Jose',128.4926,5.969,210.4563,5.969,158.8737,5.969,1.24,10.94,PASS
+california,A_nearby,109,SELECT AVG(HouseAge) FROM data WHERE place = 'San Jose' AND MedInc >= 6.0,108.4084,27.3873,159.032,27.3873,145.6402,27.3873,1.34,10.94,PASS
+california,A_nearby,110,SELECT SUM(Population) FROM data WHERE place = 'San Jose',99.2763,2783121.0967,149.128,2783121.0967,144.299,2783121.0967,1.45,10.94,PASS
+california,A_nearby,111,SELECT SUM(Population) FROM data WHERE place = 'San Jose' AND AveOccup <= 3.0,81.977,1384410.5599,162.4297,1384410.5599,156.0817,1384410.5599,1.9,5.46,PASS
+california,A_nearby,112,SELECT SUM(Population) FROM data WHERE place = 'San Jose' AND MedInc >= 5.0,100.6043,426239.0396,163.6465,426239.0396,156.0573,426239.0396,1.55,10.94,PASS
+california,A_nearby,113,SELECT COUNT(*) FROM data WHERE place = 'Berkeley',34.0796,251.0,154.8681,251,171.5795,251.0,5.03,5.45,PASS
+california,A_nearby,114,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 5.0,32.6316,57.0,165.8713,57,150.1267,57.0,4.6,5.45,PASS
+california,A_nearby,115,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 7.0,31.7908,26.0,171.8396,26,160.783,26.0,5.06,5.45,PASS
+california,A_nearby,116,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 9.0,28.7907,12.0,156.7661,12,148.2312,12.0,5.15,5.45,PASS
+california,A_nearby,117,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc BETWEEN 4.0 AND 7.0,28.7074,54.0,157.0551,54,156.8162,54.0,5.46,5.45,PASS
+california,A_nearby,118,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc BETWEEN 7.0 AND 11.0,31.477,20.0,171.4182,20,158.4356,20.0,5.03,5.45,PASS
+california,A_nearby,119,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedHouseVal >= 3.0,17.986,54.0,170.5416,54,155.4217,54.0,8.64,1.51,PASS
+california,A_nearby,120,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedHouseVal >= 4.0,27.7212,22.0,171.4487,22,160.5163,22.0,5.79,1.51,PASS
+california,A_nearby,121,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedHouseVal BETWEEN 2.5 AND 4.5,34.2044,51.0,170.4851,51,152.9012,51.0,4.47,1.51,PASS
+california,A_nearby,122,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND HouseAge <= 10,8.9618,48.0,166.6839,48,149.0567,48.0,16.63,1.37,PASS
+california,A_nearby,123,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND HouseAge BETWEEN 10 AND 30,20.8626,91.0,164.4038,91,155.5401,91.0,7.46,4.08,PASS
+california,A_nearby,124,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND HouseAge >= 40,7.3289,62.0,169.8537,62,174.409,62.0,23.8,1.38,PASS
+california,A_nearby,125,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND AveRooms BETWEEN 5.0 AND 8.0,15.7695,0.0,154.5083,108,151.4829,108.0,9.61,0.0,FAIL
+california,A_nearby,126,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND AveRooms >= 6.0 AND AveBedrms <= 1.5,19.6465,0.0,165.5977,26,161.0959,26.0,8.2,0.0,FAIL
+california,A_nearby,127,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND AveOccup <= 2.5,23.5478,85.0,166.5592,85,151.6347,85.0,6.44,2.74,PASS
+california,A_nearby,128,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND Population BETWEEN 200 AND 2000,36.269,194.0,151.8477,194,143.1835,194.0,3.95,5.45,PASS
+california,A_nearby,129,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 7.0 AND MedHouseVal >= 3.0,22.4943,26.0,177.4431,26,149.5308,26.0,6.65,1.51,PASS
+california,A_nearby,130,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 8.0 AND MedHouseVal >= 4.0,25.2815,16.0,168.9971,16,157.2667,16.0,6.22,1.51,PASS
+california,A_nearby,131,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 7.0 AND HouseAge <= 30,23.8542,17.0,155.1842,17,154.2799,17.0,6.47,4.08,PASS
+california,A_nearby,132,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 7.0 AND MedHouseVal >= 3.0 AND HouseAge <= 30,16.1265,17.0,160.5301,17,149.7908,17.0,9.29,1.13,PASS
+california,A_nearby,133,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 8.0 AND HouseAge <= 20 AND MedHouseVal >= 3.5,9.1141,5.0,168.2862,5,143.06,5.0,15.7,0.76,PASS
+california,A_nearby,134,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND AveOccup <= 3.0 AND Population BETWEEN 200 AND 2000 AND MedInc >= 5.0,21.8064,20.0,146.0266,20,152.6727,20.0,7.0,2.74,PASS
+california,A_nearby,135,SELECT COUNT(*) FROM data WHERE place = 'Berkeley' AND MedInc >= 8.0 AND MedHouseVal >= 4.0 AND HouseAge <= 20 AND AveRooms >= 5.0,7.512,0.0,167.3207,4,147.2279,4.0,19.6,0.0,FAIL
+california,A_nearby,136,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Berkeley',31.14,2.0256,161.144,2.0256,160.4036,2.0256,5.15,5.45,PASS
+california,A_nearby,137,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Berkeley' AND MedInc >= 7.0,39.8656,4.5478,167.2884,4.5478,147.2775,4.5478,3.69,5.45,PASS
+california,A_nearby,138,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Berkeley' AND HouseAge <= 20,16.0133,2.2023,167.0314,2.2023,163.6302,2.2023,10.22,2.72,PASS
+california,A_nearby,139,SELECT AVG(MedInc) FROM data WHERE place = 'Berkeley',32.7685,3.7047,161.6717,3.7047,154.9331,3.7047,4.73,5.45,PASS
+california,A_nearby,140,SELECT AVG(MedInc) FROM data WHERE place = 'Berkeley' AND MedHouseVal >= 4.0,19.3798,9.8675,168.0756,9.8675,158.0989,9.8675,8.16,1.51,PASS
+california,A_nearby,141,SELECT AVG(AveRooms) FROM data WHERE place = 'Berkeley',31.3342,5.7989,165.3616,5.7989,151.0574,5.7989,4.82,5.45,PASS
+california,A_nearby,142,SELECT AVG(HouseAge) FROM data WHERE place = 'Berkeley' AND MedInc >= 6.0,35.0204,23.7137,155.3968,23.7137,151.2331,23.7137,4.32,5.45,PASS
+california,A_nearby,143,SELECT SUM(Population) FROM data WHERE place = 'Berkeley',36.065,307181.2997,153.2261,307181.2997,152.5746,307181.2997,4.23,5.45,PASS
+california,A_nearby,144,SELECT SUM(Population) FROM data WHERE place = 'Berkeley' AND AveOccup <= 3.0,23.5439,143144.0347,153.1756,143144.0347,155.3869,143144.0347,6.6,2.74,PASS
+california,A_nearby,145,SELECT SUM(Population) FROM data WHERE place = 'Berkeley' AND MedInc >= 5.0,39.2636,79119.0478,172.3844,79119.0478,162.8351,79119.0478,4.15,5.45,PASS
+california,B_far,1,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles',89.6967,31873.0,147.9859,31873,139.8306,31873.0,1.56,9.39,PASS
+california,B_far,2,SELECT COUNT(*) FROM data WHERE place = 'Irvine',72.7143,597.0,160.2575,597,149.5586,597.0,2.06,4.69,PASS
+california,B_far,3,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista',72.3366,648.0,180.1692,648,159.9545,648.0,2.21,4.69,PASS
+california,B_far,4,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 5.0,95.2191,6185.0,168.0686,6185,141.6722,6185.0,1.49,9.39,PASS
+california,B_far,5,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0,80.7862,2673.0,152.2936,2673,140.8126,2673.0,1.74,9.39,PASS
+california,B_far,6,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 9.0,101.2823,1303.0,166.1893,1303,149.3489,1303.0,1.47,9.39,PASS
+california,B_far,7,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 5.0,75.7594,128.0,167.1612,128,171.9033,128.0,2.27,4.69,PASS
+california,B_far,8,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 8.0,76.8003,42.0,175.7649,42,190.5934,42.0,2.48,4.69,PASS
+california,B_far,9,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 6.0,66.7691,85.0,213.6721,85,172.0078,85.0,2.58,4.69,PASS
+california,B_far,10,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 9.0,95.5231,29.0,169.2753,29,184.3279,29.0,1.93,4.69,PASS
+california,B_far,11,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 6.0,100.8843,4036.0,213.0388,4036,210.0937,4036.0,2.08,9.39,PASS
+california,B_far,12,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0,93.4921,32.0,224.3613,32,157.9841,32.0,1.69,4.69,PASS
+california,B_far,13,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc BETWEEN 4.0 AND 7.0,98.6273,6963.0,166.6548,6963,157.6304,6963.0,1.6,9.39,PASS
+california,B_far,14,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc BETWEEN 7.0 AND 11.0,103.8141,2040.0,201.2298,2040,162.1,2040.0,1.56,9.39,PASS
+california,B_far,15,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc BETWEEN 5.0 AND 9.0,89.7455,96.0,166.8536,96,146.3846,96.0,1.63,4.69,PASS
+california,B_far,16,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc BETWEEN 6.0 AND 12.0,71.2371,77.0,159.4825,77,138.3771,77.0,1.94,4.69,PASS
+california,B_far,17,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc BETWEEN 5.0 AND 10.0,97.2787,5310.0,226.7885,5310,208.486,5310.0,2.14,9.39,PASS
+california,B_far,18,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedHouseVal >= 3.0,180.9199,8743.0,215.8029,8743,229.97,8743.0,1.27,2.63,PASS
+california,B_far,19,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedHouseVal >= 4.0,192.4852,4597.0,252.3392,4597,243.2066,4597.0,1.26,2.63,PASS
+california,B_far,20,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedHouseVal >= 3.5,170.6392,114.0,212.4227,114,222.6622,114.0,1.3,1.16,PASS
+california,B_far,21,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedHouseVal >= 4.0,159.5315,68.0,230.8056,68,206.0521,68.0,1.29,1.16,PASS
+california,B_far,22,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedHouseVal >= 4.5,162.642,56.0,235.014,56,243.7489,56.0,1.5,1.16,PASS
+california,B_far,23,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedHouseVal BETWEEN 3.0 AND 5.0,196.2729,159.0,284.2932,159,272.0672,159.0,1.39,1.16,PASS
+california,B_far,24,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedHouseVal BETWEEN 2.5 AND 4.5,198.569,8618.0,274.4185,8618,167.7859,8618.0,0.84,5.03,PASS
+california,B_far,25,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND HouseAge <= 10,19.501,5701.0,195.6708,5701,149.886,5701.0,7.69,2.34,PASS
+california,B_far,26,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND HouseAge <= 20,44.4834,11849.0,158.0712,11849,155.7499,11849.0,3.5,4.69,PASS
+california,B_far,27,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND HouseAge BETWEEN 10 AND 30,76.6342,12404.0,168.0143,12404,153.1253,12404.0,2.0,7.02,PASS
+california,B_far,28,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND HouseAge >= 40,16.5683,150.0,171.9872,150,151.4147,150.0,9.14,1.18,PASS
+california,B_far,29,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND HouseAge BETWEEN 20 AND 40,52.4456,248.0,156.0898,248,152.9895,248.0,2.92,3.52,PASS
+california,B_far,30,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND HouseAge <= 15,34.5927,139.0,172.593,139,159.4088,139.0,4.61,2.35,PASS
+california,B_far,31,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveRooms BETWEEN 5.0 AND 8.0,64.2273,0.0,160.3727,13162,154.312,13162.0,2.4,0.0,FAIL
+california,B_far,32,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveRooms >= 6.0 AND AveBedrms <= 1.5,66.8131,0.0,157.302,3382,149.886,3382.0,2.24,0.0,FAIL
+california,B_far,33,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND AveRooms >= 7.0,63.6333,0.0,170.3767,182,144.0221,182.0,2.26,0.0,FAIL
+california,B_far,34,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND AveRooms BETWEEN 4.0 AND 7.0 AND AveBedrms BETWEEN 1.0 AND 1.8,67.4804,271.0,166.3887,271,155.5627,271.0,2.31,4.15,PASS
+california,B_far,35,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveRooms >= 6.0 AND AveBedrms BETWEEN 1.0 AND 2.0,58.84,0.0,171.5706,9063,142.4319,9063.0,2.42,0.0,FAIL
+california,B_far,36,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveOccup <= 2.5,85.9724,11378.0,180.2655,11378,161.193,11378.0,1.87,4.68,PASS
+california,B_far,37,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveOccup <= 3.0,66.8191,15899.0,176.4048,15899,157.2889,15899.0,2.35,4.68,PASS
+california,B_far,38,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND AveOccup <= 2.0,78.364,132.0,179.8084,132,151.1313,132.0,1.93,1.17,PASS
+california,B_far,39,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND Population BETWEEN 200 AND 2000,93.2773,23981.0,193.1306,23981,170.7112,23981.0,1.83,9.39,PASS
+california,B_far,40,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND Population BETWEEN 500 AND 3000,83.614,352.0,176.3478,352,158.0477,352.0,1.89,3.52,PASS
+california,B_far,41,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0 AND MedHouseVal >= 3.0,87.1211,2673.0,174.1456,2673,162.3029,2673.0,1.86,2.63,PASS
+california,B_far,42,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND MedHouseVal >= 4.0,64.0158,1826.0,167.4664,1826,177.2639,1826.0,2.77,2.63,PASS
+california,B_far,43,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0 AND MedHouseVal >= 4.0,68.9017,32.0,170.6298,32,156.3845,32.0,2.27,1.16,PASS
+california,B_far,44,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 7.0 AND HouseAge <= 30,49.6293,42.0,172.9272,42,160.5377,42.0,3.23,3.52,PASS
+california,B_far,45,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND AveRooms >= 5.0,53.5347,0.0,180.5629,1055,171.7716,1055.0,3.21,0.0,FAIL
+california,B_far,46,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc BETWEEN 6.0 AND 10.0 AND MedHouseVal BETWEEN 3.0 AND 5.0,66.222,67.0,162.2184,67,166.0643,67.0,2.51,1.16,PASS
+california,B_far,47,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0 AND MedHouseVal >= 3.0 AND HouseAge <= 30,41.6796,1491.0,172.9375,1491,186.685,1491.0,4.48,1.98,PASS
+california,B_far,48,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0 AND MedHouseVal >= 4.0 AND AveRooms >= 6.0,74.8875,0.0,173.6934,15,160.572,15.0,2.14,0.0,FAIL
+california,B_far,49,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 6.0 AND AveRooms BETWEEN 5.0 AND 8.0 AND AveBedrms BETWEEN 1.0 AND 1.8,54.4583,0.0,176.4363,32,159.274,32.0,2.92,0.0,FAIL
+california,B_far,50,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND HouseAge <= 20 AND MedHouseVal >= 3.5,33.3808,670.0,175.3565,670,154.8907,670.0,4.64,1.32,PASS
+california,B_far,51,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND AveOccup <= 3.0 AND Population BETWEEN 200 AND 2000 AND MedInc >= 5.0,68.9189,57.0,186.6134,57,172.3504,57.0,2.5,2.34,PASS
+california,B_far,52,SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND MedHouseVal >= 4.0 AND HouseAge <= 20 AND AveRooms >= 5.0,34.3721,0.0,176.158,376,175.201,376.0,5.1,0.0,FAIL
+california,B_far,53,SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0 AND MedHouseVal >= 4.5 AND HouseAge <= 30 AND AveOccup <= 2.5,48.7903,9.0,183.2028,9,159.8649,9.0,3.28,0.43,PASS
+california,B_far,54,SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc BETWEEN 6.0 AND 11.0 AND MedHouseVal BETWEEN 3.0 AND 5.0 AND HouseAge <= 25 AND AveRooms >= 5.0,27.238,0.0,163.4452,24,170.2241,24.0,6.25,0.0,FAIL
+california,B_far,55,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Los Angeles',96.3724,2.3143,186.0057,2.3143,173.0604,2.3143,1.8,9.39,PASS
+california,B_far,56,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Irvine',76.6251,2.2461,174.5718,2.2461,160.5706,2.2461,2.1,4.69,PASS
+california,B_far,57,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Chula Vista',82.2114,2.118,164.8936,2.118,171.8105,2.118,2.09,4.69,PASS
+california,B_far,58,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0,100.9761,4.9592,172.0297,4.9592,161.9156,4.9592,1.6,9.39,PASS
+california,B_far,59,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0,68.5562,5.0,198.4843,5.0,148.252,5.0,2.16,4.69,PASS
+california,B_far,60,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Los Angeles' AND HouseAge <= 20,41.8989,2.3155,151.0653,2.3155,154.756,2.3155,3.69,4.69,PASS
+california,B_far,61,SELECT AVG(MedHouseVal) FROM data WHERE place = 'Chula Vista' AND MedInc BETWEEN 6.0 AND 10.0,74.5075,4.4807,171.3918,4.4807,151.099,4.4807,2.03,4.69,PASS
+california,B_far,62,SELECT AVG(MedInc) FROM data WHERE place = 'Los Angeles',85.7286,3.517,164.9849,3.517,163.3896,3.517,1.91,9.39,PASS
+california,B_far,63,SELECT AVG(MedInc) FROM data WHERE place = 'Irvine',67.2414,3.5889,174.0351,3.5889,170.5348,3.5889,2.54,4.69,PASS
+california,B_far,64,SELECT AVG(MedInc) FROM data WHERE place = 'Chula Vista',78.4691,3.5128,171.7833,3.5128,151.9947,3.5128,1.94,4.69,PASS
+california,B_far,65,SELECT AVG(MedInc) FROM data WHERE place = 'Los Angeles' AND MedHouseVal >= 4.0,63.3088,8.1223,169.0826,8.1223,171.2026,8.1223,2.7,2.63,PASS
+california,B_far,66,SELECT AVG(AveRooms) FROM data WHERE place = 'Los Angeles',87.2123,5.9273,182.7047,5.9273,152.0397,5.9273,1.74,9.39,PASS
+california,B_far,67,SELECT AVG(AveRooms) FROM data WHERE place = 'Irvine' AND MedInc >= 8.0,78.6166,6.704,166.6542,6.704,154.5124,6.704,1.97,4.69,PASS
+california,B_far,68,SELECT AVG(HouseAge) FROM data WHERE place = 'Los Angeles',91.4531,26.5255,173.96,26.5255,152.6015,26.5255,1.67,9.39,PASS
+california,B_far,69,SELECT AVG(HouseAge) FROM data WHERE place = 'Chula Vista' AND MedInc >= 6.0,79.1564,25.6533,152.8676,25.6533,166.005,25.6533,2.1,4.69,PASS
+california,B_far,70,SELECT SUM(Population) FROM data WHERE place = 'Los Angeles',95.7572,34260572.9613,195.8778,34260572.9613,169.0958,34260572.9613,1.77,9.39,PASS
+california,B_far,71,SELECT SUM(Population) FROM data WHERE place = 'Irvine',78.931,640372.3236,188.5323,640372.3236,156.2639,640372.3236,1.98,4.69,PASS
+california,B_far,72,SELECT SUM(Population) FROM data WHERE place = 'Chula Vista',79.0003,722095.3612,163.5607,722095.3612,152.5846,722095.3612,1.93,4.69,PASS
+california,B_far,73,SELECT SUM(Population) FROM data WHERE place = 'Los Angeles' AND AveOccup <= 3.0,81.9707,17040749.6946,177.7735,17040749.6946,176.7756,17040749.6946,2.16,4.68,PASS
+california,B_far,74,SELECT SUM(Population) FROM data WHERE place = 'Los Angeles' AND MedInc >= 5.0,105.2428,6730581.974,158.7233,6730581.974,149.7868,6730581.974,1.42,9.39,PASS
+california,B_far,75,SELECT SUM(Population) FROM data WHERE place = 'Irvine' AND MedHouseVal >= 4.0,64.806,93306.1164,168.6717,93306.1164,152.093,93306.1164,2.35,1.16,PASS
+california,B_far,76,SELECT SUM(Population) FROM data WHERE place = 'Chula Vista' AND MedInc >= 5.0,77.9162,146248.2278,165.078,146248.2278,166.3473,146248.2278,2.13,4.69,PASS

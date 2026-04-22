@@ -1,0 +1,115 @@
+# GROUP A — Nearby NYC neighbourhoods (IN-DISTRIBUTION)
+# Close to training region: Midtown, Chelsea, Gramercy
+# Flatiron, Murray Hill, Hell's Kitchen, West Village, SoHo
+
+# --- COUNT pure geo ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Murray Hill'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Hell''s Kitchen'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'West Village'
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'SoHo'
+
+# --- COUNT + fare threshold ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount >= 15.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND fare_amount >= 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron' AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Murray Hill' AND fare_amount >= 12.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Hell''s Kitchen' AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'West Village' AND fare_amount >= 15.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'SoHo' AND fare_amount >= 12.0
+
+# --- COUNT + fare BETWEEN ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount BETWEEN 8.0 AND 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount BETWEEN 15.0 AND 40.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount BETWEEN 8.0 AND 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND fare_amount BETWEEN 10.0 AND 30.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron' AND fare_amount BETWEEN 8.0 AND 25.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Murray Hill' AND fare_amount BETWEEN 10.0 AND 25.0
+
+# --- COUNT + trip distance ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND trip_distance >= 5.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND trip_distance BETWEEN 1.0 AND 5.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND trip_distance BETWEEN 1.0 AND 5.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND trip_distance >= 3.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron' AND trip_distance BETWEEN 2.0 AND 8.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Murray Hill' AND trip_distance >= 2.0
+
+# --- COUNT + tip amount ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND tip_amount >= 3.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND tip_amount >= 5.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND tip_amount BETWEEN 2.0 AND 8.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron' AND tip_amount >= 3.0
+
+# --- COUNT + duration ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND duration_min <= 10.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND duration_min BETWEEN 5.0 AND 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND duration_min <= 15.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND duration_min BETWEEN 5.0 AND 25.0
+
+# --- COUNT + passenger count ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND passenger_count >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND passenger_count >= 4.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND passenger_count >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND passenger_count >= 3.0
+
+# --- COUNT + 2 attributes ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 10.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0 AND duration_min <= 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount >= 12.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount >= 10.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND fare_amount >= 15.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron' AND fare_amount >= 10.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Murray Hill' AND fare_amount >= 12.0 AND duration_min <= 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Hell''s Kitchen' AND fare_amount >= 10.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'West Village' AND fare_amount >= 12.0 AND trip_distance >= 2.0
+
+# --- COUNT + 3 attributes ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0 AND tip_amount >= 2.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 20.0 AND tip_amount >= 3.0 AND duration_min <= 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount >= 12.0 AND tip_amount >= 2.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND fare_amount >= 15.0 AND trip_distance >= 2.0 AND duration_min <= 25.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Flatiron' AND fare_amount >= 10.0 AND tip_amount >= 2.0 AND passenger_count >= 2.0
+
+# --- COUNT + 4 attributes ---
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0 AND tip_amount >= 2.0 AND trip_distance >= 2.0 AND duration_min <= 20.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Chelsea' AND fare_amount >= 12.0 AND tip_amount >= 2.0 AND trip_distance >= 2.0 AND passenger_count >= 2.0
+SELECT COUNT(*) FROM data WHERE neighbourhood = 'Gramercy' AND fare_amount >= 15.0 AND tip_amount >= 3.0 AND trip_distance >= 3.0 AND duration_min <= 20.0
+
+# --- AVG ---
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Midtown'
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Chelsea'
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Gramercy'
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Flatiron'
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Murray Hill'
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Midtown' AND trip_distance >= 2.0
+SELECT AVG(fare_amount) FROM data WHERE neighbourhood = 'Chelsea' AND tip_amount >= 2.0
+SELECT AVG(tip_amount) FROM data WHERE neighbourhood = 'Midtown'
+SELECT AVG(tip_amount) FROM data WHERE neighbourhood = 'Chelsea'
+SELECT AVG(tip_amount) FROM data WHERE neighbourhood = 'Gramercy'
+SELECT AVG(tip_amount) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0
+SELECT AVG(trip_distance) FROM data WHERE neighbourhood = 'Midtown'
+SELECT AVG(trip_distance) FROM data WHERE neighbourhood = 'Chelsea'
+SELECT AVG(trip_distance) FROM data WHERE neighbourhood = 'Gramercy'
+SELECT AVG(duration_min) FROM data WHERE neighbourhood = 'Midtown'
+SELECT AVG(duration_min) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 15.0
+
+# --- SUM ---
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Midtown'
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Chelsea'
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Gramercy'
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Flatiron'
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Midtown' AND fare_amount >= 10.0
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Chelsea' AND trip_distance >= 2.0
+SELECT SUM(total_amount) FROM data WHERE neighbourhood = 'Gramercy' AND tip_amount >= 2.0

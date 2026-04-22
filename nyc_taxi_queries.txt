@@ -1,0 +1,87 @@
+# Training queries for Tsunami index — NYC Yellow Taxi dataset
+#
+# Expected columns (old TLC format 2009-2015, lat/lon present):
+#   pickup_longitude, pickup_latitude
+#   dropoff_longitude, dropoff_latitude
+#   passenger_count, trip_distance
+#   fare_amount, tip_amount, total_amount
+#   tpep_pickup_datetime_hour, tpep_pickup_datetime_dayofweek,
+#   tpep_pickup_datetime_month   (extracted from datetime by loader)
+#
+# NYC bounding boxes (approximate):
+#   Manhattan : lat 40.70-40.88  lon -74.02 to -73.91
+#   Brooklyn  : lat 40.57-40.74  lon -74.05 to -73.83
+#   Queens    : lat 40.54-40.80  lon -73.96 to -73.70
+#   Bronx     : lat 40.79-40.92  lon -73.93 to -73.75
+#   Midtown   : lat 40.74-40.77  lon -73.99 to -73.96
+#   JFK area  : lat 40.62-40.66  lon -73.80 to -73.75
+#
+# Design goals:
+#   1. pickup_longitude / pickup_latitude tight geographic correlation
+#      → AGD detects CONDITIONAL CDF (correlated, but not strictly linear)
+#   2. fare_amount / trip_distance moderate correlation
+#      → AGD uses CONDITIONAL or FUNCTIONAL
+#   3. tip_amount / fare_amount correlation (tip ≈ 0.2 * fare)
+#      → FUNCTIONAL mapping likely
+#   4. Many queries in Manhattan (skewed workload → Grid Tree splits there)
+
+# ── tip_amount / fare_amount correlation (tip ≈ 20% of fare) ────────────────
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 10 AND tip_amount BETWEEN 0.5 AND 2.5
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 8 AND 15 AND tip_amount BETWEEN 1.0 AND 4.0
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 10 AND 20 AND tip_amount BETWEEN 1.5 AND 5.0
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 15 AND 30 AND tip_amount BETWEEN 2.0 AND 7.0
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 20 AND 40 AND tip_amount BETWEEN 3.0 AND 9.0
+SELECT COUNT(*) FROM data WHERE fare_amount >= 30 AND tip_amount >= 5.0
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 6 AND 12 AND tip_amount BETWEEN 1.0 AND 3.0
+SELECT AVG(tip_amount) FROM data WHERE fare_amount BETWEEN 10 AND 25
+SELECT AVG(tip_amount) FROM data WHERE fare_amount >= 20 AND trip_distance >= 5
+
+# ── fare_amount / trip_distance correlation ───────────────────────────────────
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 1 AND 3 AND fare_amount BETWEEN 5 AND 12
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 2 AND 5 AND fare_amount BETWEEN 8 AND 18
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 4 AND 8 AND fare_amount BETWEEN 13 AND 28
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 7 AND 15 AND fare_amount BETWEEN 22 AND 50
+SELECT COUNT(*) FROM data WHERE trip_distance >= 10 AND fare_amount >= 28
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 1 AND 2 AND fare_amount BETWEEN 5 AND 9
+SELECT AVG(fare_amount) FROM data WHERE trip_distance BETWEEN 3 AND 8
+
+# ── Manhattan pickups (geographic skew — many queries here) ─────────────────
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.70 AND 40.88 AND pickup_longitude BETWEEN -74.02 AND -73.91
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.74 AND 40.77 AND pickup_longitude BETWEEN -73.99 AND -73.96
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.75 AND 40.80 AND pickup_longitude BETWEEN -74.00 AND -73.95
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.72 AND 40.76 AND pickup_longitude BETWEEN -74.01 AND -73.97
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.76 AND 40.82 AND pickup_longitude BETWEEN -73.98 AND -73.93
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.70 AND 40.75 AND pickup_longitude BETWEEN -74.02 AND -73.96
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.74 AND 40.88 AND pickup_longitude BETWEEN -74.00 AND -73.91 AND fare_amount >= 10
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.74 AND 40.88 AND pickup_longitude BETWEEN -74.00 AND -73.91 AND fare_amount >= 20
+SELECT AVG(fare_amount) FROM data WHERE pickup_latitude BETWEEN 40.70 AND 40.88 AND pickup_longitude BETWEEN -74.02 AND -73.91
+
+# ── Brooklyn pickups ──────────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.57 AND 40.74 AND pickup_longitude BETWEEN -74.05 AND -73.83
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.60 AND 40.70 AND pickup_longitude BETWEEN -74.00 AND -73.88
+
+# ── JFK / airport pickups ─────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.62 AND 40.66 AND pickup_longitude BETWEEN -73.80 AND -73.75
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.62 AND 40.66 AND pickup_longitude BETWEEN -73.80 AND -73.75 AND fare_amount >= 40
+
+# ── Rush-hour time queries ────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_hour BETWEEN 7 AND 9
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_hour BETWEEN 17 AND 19
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_hour BETWEEN 22 AND 23
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_hour BETWEEN 0 AND 3
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_dayofweek BETWEEN 0 AND 4 AND tpep_pickup_datetime_hour BETWEEN 7 AND 9
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_dayofweek BETWEEN 5 AND 6 AND tpep_pickup_datetime_hour BETWEEN 22 AND 23
+
+# ── 3-column skewed combinations (biggest pruning benefit) ───────────────────
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.70 AND 40.88 AND pickup_longitude BETWEEN -74.02 AND -73.91 AND fare_amount BETWEEN 10 AND 30
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.74 AND 40.77 AND pickup_longitude BETWEEN -73.99 AND -73.96 AND tpep_pickup_datetime_hour BETWEEN 7 AND 9
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.74 AND 40.77 AND pickup_longitude BETWEEN -73.99 AND -73.96 AND tpep_pickup_datetime_hour BETWEEN 17 AND 19
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 2 AND 6 AND fare_amount BETWEEN 8 AND 20 AND tip_amount BETWEEN 1 AND 5
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 1 AND 3 AND fare_amount BETWEEN 5 AND 12 AND tpep_pickup_datetime_hour BETWEEN 7 AND 9
+SELECT COUNT(*) FROM data WHERE pickup_latitude BETWEEN 40.70 AND 40.88 AND fare_amount BETWEEN 8 AND 25 AND tpep_pickup_datetime_hour BETWEEN 17 AND 20
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 10 AND 30 AND tip_amount BETWEEN 2 AND 7 AND passenger_count BETWEEN 1 AND 2
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 3 AND 10 AND fare_amount BETWEEN 12 AND 35 AND pickup_latitude BETWEEN 40.70 AND 40.88
+SELECT COUNT(*) FROM data WHERE tpep_pickup_datetime_hour BETWEEN 7 AND 9 AND pickup_latitude BETWEEN 40.70 AND 40.88 AND trip_distance BETWEEN 1 AND 5
+SELECT AVG(tip_amount) FROM data WHERE pickup_latitude BETWEEN 40.70 AND 40.88 AND fare_amount BETWEEN 10 AND 30
+SELECT AVG(fare_amount) FROM data WHERE pickup_latitude BETWEEN 40.74 AND 40.77 AND tpep_pickup_datetime_hour BETWEEN 7 AND 9
+SELECT AVG(total_amount) FROM data WHERE trip_distance BETWEEN 5 AND 15 AND tpep_pickup_datetime_hour BETWEEN 17 AND 19

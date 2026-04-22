@@ -1,0 +1,88 @@
+# Training queries — tightly focused on Midtown, Chelsea, Gramercy (central Manhattan)
+# Midtown  : Lat 40.748–40.768, Lon -74.000 to -73.970
+# Chelsea  : Lat 40.740–40.752, Lon -74.005 to -73.990
+# Gramercy : Lat 40.733–40.745, Lon -73.990 to -73.978
+
+# ── Midtown — pure geo ────────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.750 AND 40.765 AND Longitude BETWEEN -73.998 AND -73.972
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.752 AND 40.768 AND Longitude BETWEEN -73.995 AND -73.975
+
+# ── Midtown — fare filters ────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount >= 15.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount >= 20.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount BETWEEN 8.0 AND 20.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount BETWEEN 15.0 AND 40.0
+
+# ── Midtown — trip distance filters ──────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND trip_distance BETWEEN 1.0 AND 5.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND trip_distance >= 5.0
+
+# ── Midtown — multi-attribute ─────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount >= 15.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount >= 10.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970 AND fare_amount >= 15.0 AND duration_min <= 20.0
+
+# ── Midtown — aggregations ────────────────────────────────────────────────────
+SELECT AVG(fare_amount) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970
+SELECT AVG(tip_amount) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970
+SELECT AVG(trip_distance) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970
+SELECT SUM(total_amount) FROM data WHERE Latitude BETWEEN 40.748 AND 40.768 AND Longitude BETWEEN -74.000 AND -73.970
+
+# ── Chelsea — pure geo ────────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.741 AND 40.750 AND Longitude BETWEEN -74.004 AND -73.991
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.743 AND 40.752 AND Longitude BETWEEN -74.003 AND -73.992
+
+# ── Chelsea — fare filters ────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount >= 15.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount >= 20.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount BETWEEN 8.0 AND 20.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount BETWEEN 15.0 AND 40.0
+
+# ── Chelsea — trip distance filters ──────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND trip_distance BETWEEN 1.0 AND 5.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND trip_distance >= 5.0
+
+# ── Chelsea — multi-attribute ─────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount >= 15.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount >= 10.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990 AND fare_amount >= 15.0 AND duration_min <= 20.0
+
+# ── Chelsea — aggregations ────────────────────────────────────────────────────
+SELECT AVG(fare_amount) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990
+SELECT AVG(tip_amount) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990
+SELECT AVG(trip_distance) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990
+SELECT SUM(total_amount) FROM data WHERE Latitude BETWEEN 40.740 AND 40.752 AND Longitude BETWEEN -74.005 AND -73.990
+
+# ── Gramercy — pure geo ───────────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.734 AND 40.744 AND Longitude BETWEEN -73.989 AND -73.979
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.736 AND 40.745 AND Longitude BETWEEN -73.988 AND -73.980
+
+# ── Gramercy — fare filters ───────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount >= 10.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount >= 15.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount >= 20.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount BETWEEN 8.0 AND 20.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount BETWEEN 15.0 AND 40.0
+
+# ── Gramercy — trip distance filters ─────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND trip_distance BETWEEN 1.0 AND 5.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND trip_distance >= 5.0
+
+# ── Gramercy — multi-attribute ────────────────────────────────────────────────
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount >= 15.0 AND tip_amount >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount >= 10.0 AND trip_distance >= 2.0
+SELECT COUNT(*) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978 AND fare_amount >= 15.0 AND duration_min <= 20.0
+
+# ── Gramercy — aggregations ───────────────────────────────────────────────────
+SELECT AVG(fare_amount) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978
+SELECT AVG(tip_amount) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978
+SELECT AVG(trip_distance) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978
+SELECT SUM(total_amount) FROM data WHERE Latitude BETWEEN 40.733 AND 40.745 AND Longitude BETWEEN -73.990 AND -73.978
