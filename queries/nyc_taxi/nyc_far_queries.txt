@@ -1,0 +1,54 @@
+# GROUP B - Far (OUT-OF-DISTRIBUTION)
+# Budget / short trips — the most common ride type in NYC, opposite end from training.
+# Training zone: fare_amount > 40, trip_distance > 12  (rare premium rides)
+# Far zone:      fare_amount < 12, trip_distance < 2   (common short rides, ~35-45% of data)
+# Tsunami has coarse/unoptimised partitions here -> higher scan%, lower speedup expected.
+
+# COUNT + 1 attribute
+SELECT COUNT(*) FROM data WHERE fare_amount < 12
+SELECT COUNT(*) FROM data WHERE fare_amount < 10
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12
+SELECT COUNT(*) FROM data WHERE trip_distance < 2
+SELECT COUNT(*) FROM data WHERE trip_distance < 1.5
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 0.5 AND 2
+SELECT COUNT(*) FROM data WHERE total_amount < 15
+
+# COUNT + 2 attributes
+SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2
+SELECT COUNT(*) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12 AND trip_distance BETWEEN 0.5 AND 2
+SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND total_amount < 15
+SELECT COUNT(*) FROM data WHERE trip_distance < 2 AND total_amount < 15
+SELECT COUNT(*) FROM data WHERE fare_amount < 10 AND total_amount < 14
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12 AND total_amount BETWEEN 6 AND 16
+SELECT COUNT(*) FROM data WHERE trip_distance < 2 AND tip_amount < 2
+SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND tip_amount < 3
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 6 AND 11 AND trip_distance BETWEEN 0.5 AND 1.8
+
+# COUNT + 3 attributes
+SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15
+SELECT COUNT(*) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5 AND total_amount < 14
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12 AND trip_distance BETWEEN 0.5 AND 2 AND total_amount < 16
+SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND tip_amount < 2
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 6 AND 12 AND total_amount BETWEEN 7 AND 15 AND trip_distance < 2
+
+# COUNT + 4 attributes
+SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15 AND tip_amount < 2
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 11 AND trip_distance BETWEEN 0.5 AND 1.8 AND total_amount BETWEEN 6 AND 14 AND tip_amount < 1.5
+
+# AVG
+SELECT AVG(fare_amount) FROM data WHERE trip_distance < 2
+SELECT AVG(trip_distance) FROM data WHERE fare_amount < 12
+SELECT AVG(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2
+SELECT AVG(tip_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2
+SELECT AVG(fare_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15
+SELECT AVG(trip_distance) FROM data WHERE fare_amount < 10 AND total_amount < 14
+SELECT AVG(total_amount) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5 AND tip_amount < 2
+SELECT AVG(fare_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15 AND tip_amount < 2
+
+# SUM
+SELECT SUM(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2
+SELECT SUM(fare_amount) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5
+SELECT SUM(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15
+SELECT SUM(fare_amount) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5 AND total_amount < 14 AND tip_amount < 1.5
+SELECT SUM(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15 AND tip_amount < 2

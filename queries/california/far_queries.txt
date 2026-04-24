@@ -1,0 +1,102 @@
+# GROUP B — Far-away places (Los Angeles, Irvine, Chula Vista)
+# These are OUT-OF-DISTRIBUTION: far outside the Bay Area training region.
+
+# --- COUNT pure geo ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles'
+SELECT COUNT(*) FROM data WHERE place = 'Irvine'
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista'
+
+# --- COUNT + income threshold ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 5.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 9.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 5.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 8.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 6.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 9.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 6.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0
+
+# --- COUNT + income BETWEEN ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc BETWEEN 4.0 AND 7.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc BETWEEN 7.0 AND 11.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc BETWEEN 5.0 AND 9.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc BETWEEN 6.0 AND 12.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc BETWEEN 5.0 AND 10.0
+
+# --- COUNT + house value ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedHouseVal >= 3.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedHouseVal >= 4.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedHouseVal >= 3.5
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedHouseVal >= 4.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedHouseVal >= 4.5
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedHouseVal BETWEEN 3.0 AND 5.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedHouseVal BETWEEN 2.5 AND 4.5
+
+# --- COUNT + house age ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND HouseAge <= 10
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND HouseAge <= 20
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND HouseAge BETWEEN 10 AND 30
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND HouseAge >= 40
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND HouseAge BETWEEN 20 AND 40
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND HouseAge <= 15
+
+# --- COUNT + rooms / bedrooms ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveRooms BETWEEN 5.0 AND 8.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveRooms >= 6.0 AND AveBedrms <= 1.5
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND AveRooms >= 7.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND AveRooms BETWEEN 4.0 AND 7.0 AND AveBedrms BETWEEN 1.0 AND 1.8
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveRooms >= 6.0 AND AveBedrms BETWEEN 1.0 AND 2.0
+
+# --- COUNT + occupancy / population ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveOccup <= 2.5
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND AveOccup <= 3.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND AveOccup <= 2.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND Population BETWEEN 200 AND 2000
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND Population BETWEEN 500 AND 3000
+
+# --- COUNT + 2 attributes ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0 AND MedHouseVal >= 3.0
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND MedHouseVal >= 4.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0 AND MedHouseVal >= 4.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 7.0 AND HouseAge <= 30
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND AveRooms >= 5.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc BETWEEN 6.0 AND 10.0 AND MedHouseVal BETWEEN 3.0 AND 5.0
+
+# --- COUNT + 3 attributes ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0 AND MedHouseVal >= 3.0 AND HouseAge <= 30
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0 AND MedHouseVal >= 4.0 AND AveRooms >= 6.0
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc >= 6.0 AND AveRooms BETWEEN 5.0 AND 8.0 AND AveBedrms BETWEEN 1.0 AND 1.8
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND HouseAge <= 20 AND MedHouseVal >= 3.5
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND AveOccup <= 3.0 AND Population BETWEEN 200 AND 2000 AND MedInc >= 5.0
+
+# --- COUNT + 4 attributes ---
+SELECT COUNT(*) FROM data WHERE place = 'Los Angeles' AND MedInc >= 8.0 AND MedHouseVal >= 4.0 AND HouseAge <= 20 AND AveRooms >= 5.0
+SELECT COUNT(*) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0 AND MedHouseVal >= 4.5 AND HouseAge <= 30 AND AveOccup <= 2.5
+SELECT COUNT(*) FROM data WHERE place = 'Chula Vista' AND MedInc BETWEEN 6.0 AND 11.0 AND MedHouseVal BETWEEN 3.0 AND 5.0 AND HouseAge <= 25 AND AveRooms >= 5.0
+
+# --- AVG ---
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Los Angeles'
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Irvine'
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Chula Vista'
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Los Angeles' AND MedInc >= 7.0
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Irvine' AND MedInc >= 9.0
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Los Angeles' AND HouseAge <= 20
+SELECT AVG(MedHouseVal) FROM data WHERE place = 'Chula Vista' AND MedInc BETWEEN 6.0 AND 10.0
+SELECT AVG(MedInc) FROM data WHERE place = 'Los Angeles'
+SELECT AVG(MedInc) FROM data WHERE place = 'Irvine'
+SELECT AVG(MedInc) FROM data WHERE place = 'Chula Vista'
+SELECT AVG(MedInc) FROM data WHERE place = 'Los Angeles' AND MedHouseVal >= 4.0
+SELECT AVG(AveRooms) FROM data WHERE place = 'Los Angeles'
+SELECT AVG(AveRooms) FROM data WHERE place = 'Irvine' AND MedInc >= 8.0
+SELECT AVG(HouseAge) FROM data WHERE place = 'Los Angeles'
+SELECT AVG(HouseAge) FROM data WHERE place = 'Chula Vista' AND MedInc >= 6.0
+
+# --- SUM ---
+SELECT SUM(Population) FROM data WHERE place = 'Los Angeles'
+SELECT SUM(Population) FROM data WHERE place = 'Irvine'
+SELECT SUM(Population) FROM data WHERE place = 'Chula Vista'
+SELECT SUM(Population) FROM data WHERE place = 'Los Angeles' AND AveOccup <= 3.0
+SELECT SUM(Population) FROM data WHERE place = 'Los Angeles' AND MedInc >= 5.0
+SELECT SUM(Population) FROM data WHERE place = 'Irvine' AND MedHouseVal >= 4.0
+SELECT SUM(Population) FROM data WHERE place = 'Chula Vista' AND MedInc >= 5.0

@@ -1,0 +1,39 @@
+# Training queries — NYC Yellow Taxi 2016
+# Target zone: EXPANDED PREMIUM trips  (~10-15% of data)
+#   fare_amount > 30, trip_distance > 8  (mid-to-high fare, medium-long rides)
+# Tsunami builds fine-grained partitions in this premium region.
+# Available columns: trip_distance, fare_amount, tip_amount, total_amount,
+#                    PULocationID, DOLocationID
+
+# Core premium zone
+SELECT COUNT(*) FROM data WHERE fare_amount > 30 AND trip_distance > 8
+SELECT COUNT(*) FROM data WHERE fare_amount > 32 AND trip_distance > 9
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 30 AND 80 AND trip_distance BETWEEN 8 AND 25
+
+# fare only
+SELECT COUNT(*) FROM data WHERE fare_amount > 30
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 30 AND 90
+
+# distance only
+SELECT COUNT(*) FROM data WHERE trip_distance > 8
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 8 AND 30
+
+# total amount
+SELECT COUNT(*) FROM data WHERE total_amount > 40 AND trip_distance > 8
+SELECT COUNT(*) FROM data WHERE total_amount BETWEEN 38 AND 100 AND fare_amount > 30
+
+# 3-attribute
+SELECT COUNT(*) FROM data WHERE fare_amount > 30 AND trip_distance > 8 AND total_amount > 40
+SELECT COUNT(*) FROM data WHERE fare_amount > 32 AND trip_distance > 9 AND total_amount > 42
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 30 AND 80 AND trip_distance BETWEEN 8 AND 25 AND total_amount > 38
+
+# 4-attribute
+SELECT COUNT(*) FROM data WHERE fare_amount > 30 AND trip_distance > 8 AND total_amount > 40 AND tip_amount > 3
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 30 AND 80 AND trip_distance BETWEEN 8 AND 25 AND total_amount BETWEEN 38 AND 100 AND tip_amount > 2
+
+# Aggregations
+SELECT AVG(fare_amount) FROM data WHERE trip_distance > 8
+SELECT AVG(trip_distance) FROM data WHERE fare_amount > 30
+SELECT AVG(total_amount) FROM data WHERE fare_amount > 30 AND trip_distance > 8
+SELECT SUM(total_amount) FROM data WHERE fare_amount > 30 AND trip_distance > 8
+SELECT SUM(fare_amount) FROM data WHERE fare_amount > 30 AND trip_distance > 8 AND total_amount > 40
