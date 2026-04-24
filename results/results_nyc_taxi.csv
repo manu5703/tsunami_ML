@@ -1,0 +1,75 @@
+dataset,group,query_no,query,tsunami_ms,tsunami_answer,numpy_ms,numpy_answer,bruteforce_ms,bruteforce_answer,speedup_x,scan_pct,match
+nyc_taxi_real,A_nearby,1,SELECT COUNT(*) FROM data WHERE fare_amount > 40,28.1392,86119.0,84.9247,86119,104.6581,86119.0,3.72,8.08,PASS
+nyc_taxi_real,A_nearby,2,SELECT COUNT(*) FROM data WHERE fare_amount > 45,23.6623,70103.0,94.6245,70103,113.7404,70103.0,4.81,8.08,PASS
+nyc_taxi_real,A_nearby,3,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 90,38.2009,84140.0,118.7958,84140,143.7472,84140.0,3.76,8.01,PASS
+nyc_taxi_real,A_nearby,4,SELECT COUNT(*) FROM data WHERE trip_distance > 10,60.4876,120609.0,143.0515,120609,123.6465,120609.0,2.04,9.0,PASS
+nyc_taxi_real,A_nearby,5,SELECT COUNT(*) FROM data WHERE trip_distance > 12,58.1513,80969.0,100.0395,80969,84.5676,80969.0,1.45,9.0,PASS
+nyc_taxi_real,A_nearby,6,SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 10 AND 30,35.9666,119859.0,109.5241,119859,81.4185,119859.0,2.26,8.97,PASS
+nyc_taxi_real,A_nearby,7,SELECT COUNT(*) FROM data WHERE total_amount > 50,70.9828,88073.0,90.4485,88073,81.3056,88073.0,1.15,27.13,PASS
+nyc_taxi_real,A_nearby,8,SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10,16.5869,77892.0,80.0464,77892,81.3333,77892.0,4.9,4.48,PASS
+nyc_taxi_real,A_nearby,9,SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 12,21.0707,62182.0,99.1802,62182,91.8585,62182.0,4.36,4.48,PASS
+nyc_taxi_real,A_nearby,10,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 90 AND trip_distance BETWEEN 10 AND 25,9.5789,75431.0,131.0328,75431,98.2124,75431.0,10.25,4.35,PASS
+nyc_taxi_real,A_nearby,11,SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND total_amount > 50,23.1492,77930.0,86.1198,77930,84.6537,77930.0,3.66,6.95,PASS
+nyc_taxi_real,A_nearby,12,SELECT COUNT(*) FROM data WHERE trip_distance > 10 AND total_amount > 50,26.3228,78052.0,94.2638,78052,78.1152,78052.0,2.97,4.58,PASS
+nyc_taxi_real,A_nearby,13,SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND tip_amount > 4,16.2511,43435.0,80.1643,43435,98.183,43435.0,6.04,4.88,PASS
+nyc_taxi_real,A_nearby,14,SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND tip_amount > 5,15.8246,53074.0,81.4886,53074,78.9456,53074.0,4.99,4.5,PASS
+nyc_taxi_real,A_nearby,15,SELECT COUNT(*) FROM data WHERE trip_distance > 12 AND total_amount > 55,16.5365,59331.0,122.884,59331,83.2346,59331.0,5.03,4.58,PASS
+nyc_taxi_real,A_nearby,16,SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 10,14.4369,63783.0,81.9531,63783,81.5324,63783.0,5.65,4.48,PASS
+nyc_taxi_real,A_nearby,17,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 80 AND total_amount BETWEEN 48 AND 100,16.3956,76389.0,86.801,76389,80.7798,76389.0,4.93,6.82,PASS
+nyc_taxi_real,A_nearby,18,SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50,14.6416,70653.0,82.9291,70653,79.4972,70653.0,5.43,4.0,PASS
+nyc_taxi_real,A_nearby,19,SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND total_amount > 55,15.7579,55879.0,83.7638,55879,83.4859,55879.0,5.3,4.0,PASS
+nyc_taxi_real,A_nearby,20,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 80 AND trip_distance BETWEEN 10 AND 25 AND total_amount > 50,10.1051,67757.0,86.6496,67757,92.1679,67757.0,9.12,3.82,PASS
+nyc_taxi_real,A_nearby,21,SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND tip_amount > 4,21.4291,49115.0,89.029,49115,79.138,49115.0,3.69,2.92,PASS
+nyc_taxi_real,A_nearby,22,SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND total_amount > 55 AND tip_amount > 5,16.4375,42565.0,80.6805,42565,80.6352,42565.0,4.91,4.4,PASS
+nyc_taxi_real,A_nearby,23,SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50 AND tip_amount > 4,11.279,48114.0,80.5895,48114,91.8327,48114.0,8.14,2.82,PASS
+nyc_taxi_real,A_nearby,24,SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND total_amount > 55 AND tip_amount > 5,11.2964,38261.0,81.1193,38261,79.585,38261.0,7.05,2.82,PASS
+nyc_taxi_real,A_nearby,25,SELECT AVG(fare_amount) FROM data WHERE trip_distance > 10,29.9753,46.0471,94.6707,46.0471,84.8403,46.0471,2.83,9.0,PASS
+nyc_taxi_real,A_nearby,26,SELECT AVG(trip_distance) FROM data WHERE fare_amount > 40,39.7302,15.8725,102.9929,15.8725,85.6966,15.8725,2.16,8.08,PASS
+nyc_taxi_real,A_nearby,27,SELECT AVG(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10,17.5042,65.1082,85.3313,65.1082,88.3711,65.1082,5.05,4.48,PASS
+nyc_taxi_real,A_nearby,28,SELECT AVG(tip_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10,17.3579,7.0789,92.3318,7.0789,83.231,7.0789,4.79,4.48,PASS
+nyc_taxi_real,A_nearby,29,SELECT AVG(fare_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50,15.527,53.483,85.137,53.483,85.7955,53.483,5.53,4.0,PASS
+nyc_taxi_real,A_nearby,30,SELECT AVG(trip_distance) FROM data WHERE fare_amount > 45 AND total_amount > 55,22.3446,16.9651,85.1468,16.9651,87.0674,16.9651,3.9,6.95,PASS
+nyc_taxi_real,A_nearby,31,SELECT AVG(total_amount) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND tip_amount > 5,16.6486,72.687,99.4519,72.687,109.2752,72.687,6.56,2.92,PASS
+nyc_taxi_real,A_nearby,32,SELECT AVG(fare_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50 AND tip_amount > 4,13.636,52.6815,97.8205,52.6815,123.3288,52.6815,9.04,2.82,PASS
+nyc_taxi_real,A_nearby,33,SELECT SUM(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10,18.8567,5071410.04,105.0572,5071410.04,107.8384,5071410.04,5.72,4.48,PASS
+nyc_taxi_real,A_nearby,34,SELECT SUM(fare_amount) FROM data WHERE fare_amount > 45 AND trip_distance > 12,15.5368,3413972.93,84.3361,3413972.93,88.8121,3413972.93,5.72,4.48,PASS
+nyc_taxi_real,A_nearby,35,SELECT SUM(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50,16.4099,4738715.1,94.077,4738715.1,86.4133,4738715.1,5.27,4.0,PASS
+nyc_taxi_real,A_nearby,36,SELECT SUM(fare_amount) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND total_amount > 55 AND tip_amount > 5,11.7837,2105166.49,81.5774,2105166.49,81.8816,2105166.49,6.95,2.82,PASS
+nyc_taxi_real,A_nearby,37,SELECT SUM(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50 AND tip_amount > 4,13.1417,3354329.53,93.9086,3354329.53,84.4964,3354329.53,6.43,2.82,PASS
+nyc_taxi_real,B_far,1,SELECT COUNT(*) FROM data WHERE fare_amount < 12,190.8211,1282602.0,123.1399,1282602,86.5171,1282602.0,0.45,74.88,PASS
+nyc_taxi_real,B_far,2,SELECT COUNT(*) FROM data WHERE fare_amount < 10,151.6416,1065383.0,155.6791,1065383,90.173,1065383.0,0.59,56.32,PASS
+nyc_taxi_real,B_far,3,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12,215.1893,1129814.0,125.9051,1129814,92.7421,1129814.0,0.43,74.88,PASS
+nyc_taxi_real,B_far,4,SELECT COUNT(*) FROM data WHERE trip_distance < 2,238.4353,1147193.0,111.5912,1147193,88.2348,1147193.0,0.37,91.11,PASS
+nyc_taxi_real,B_far,5,SELECT COUNT(*) FROM data WHERE trip_distance < 1.5,224.3919,875699.0,124.6134,875699,96.8286,875699.0,0.43,91.11,PASS
+nyc_taxi_real,B_far,6,SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 0.5 AND 2,232.9949,1057048.0,129.8077,1057048,81.567,1057048.0,0.35,91.11,PASS
+nyc_taxi_real,B_far,7,SELECT COUNT(*) FROM data WHERE total_amount < 15,210.0751,1280113.0,120.5944,1280113,89.1224,1280113.0,0.42,74.88,PASS
+nyc_taxi_real,B_far,8,SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2,196.6425,1084214.0,136.0198,1084214,78.8304,1084214.0,0.4,74.85,PASS
+nyc_taxi_real,B_far,9,SELECT COUNT(*) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5,141.1228,812200.0,109.2462,812200,79.7877,812200.0,0.57,56.29,PASS
+nyc_taxi_real,B_far,10,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12 AND trip_distance BETWEEN 0.5 AND 2,217.2243,915580.0,175.6368,915580,124.0776,915580.0,0.57,74.85,PASS
+nyc_taxi_real,B_far,11,SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND total_amount < 15,306.8294,1230635.0,196.4423,1230635,113.8241,1230635.0,0.37,74.88,PASS
+nyc_taxi_real,B_far,12,SELECT COUNT(*) FROM data WHERE trip_distance < 2 AND total_amount < 15,181.7412,1079772.0,121.0699,1079772,81.7694,1079772.0,0.45,74.85,PASS
+nyc_taxi_real,B_far,13,SELECT COUNT(*) FROM data WHERE fare_amount < 10 AND total_amount < 14,162.0335,1053844.0,118.9166,1053844,83.256,1053844.0,0.51,56.32,PASS
+nyc_taxi_real,B_far,14,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12 AND total_amount BETWEEN 6 AND 16,220.1649,1102349.0,114.9527,1102349,78.5832,1102349.0,0.36,74.86,PASS
+nyc_taxi_real,B_far,15,SELECT COUNT(*) FROM data WHERE trip_distance < 2 AND tip_amount < 2,223.9707,966650.0,191.6925,966650,120.6939,966650.0,0.54,84.15,PASS
+nyc_taxi_real,B_far,16,SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND tip_amount < 3,272.6737,1256717.0,154.5357,1256717,87.1197,1256717.0,0.32,74.87,PASS
+nyc_taxi_real,B_far,17,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 6 AND 11 AND trip_distance BETWEEN 0.5 AND 1.8,216.5969,651850.0,117.3377,651850,82.1536,651850.0,0.38,74.85,PASS
+nyc_taxi_real,B_far,18,SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15,208.2334,1066468.0,123.0391,1066468,83.2479,1066468.0,0.4,74.85,PASS
+nyc_taxi_real,B_far,19,SELECT COUNT(*) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5 AND total_amount < 14,145.6713,808446.0,131.3836,808446,90.7733,808446.0,0.62,56.29,PASS
+nyc_taxi_real,B_far,20,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 12 AND trip_distance BETWEEN 0.5 AND 2 AND total_amount < 16,198.2606,912084.0,113.9318,912084,85.4591,912084.0,0.43,74.85,PASS
+nyc_taxi_real,B_far,21,SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND tip_amount < 2,201.4957,933392.0,140.9446,933392,87.674,933392.0,0.44,74.85,PASS
+nyc_taxi_real,B_far,22,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 6 AND 12 AND total_amount BETWEEN 7 AND 15 AND trip_distance < 2,205.3965,727693.0,116.8941,727693,78.7466,727693.0,0.38,74.85,PASS
+nyc_taxi_real,B_far,23,SELECT COUNT(*) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15 AND tip_amount < 2,203.5484,932654.0,120.2512,932654,82.0659,932654.0,0.4,74.85,PASS
+nyc_taxi_real,B_far,24,SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 5 AND 11 AND trip_distance BETWEEN 0.5 AND 1.8 AND total_amount BETWEEN 6 AND 14 AND tip_amount < 1.5,167.4674,506813.0,125.95,506813,86.9939,506813.0,0.52,57.52,PASS
+nyc_taxi_real,B_far,25,SELECT AVG(fare_amount) FROM data WHERE trip_distance < 2,285.0609,7.6941,161.1105,7.6941,153.5126,7.6941,0.54,91.11,PASS
+nyc_taxi_real,B_far,26,SELECT AVG(trip_distance) FROM data WHERE fare_amount < 12,325.5959,1.3231,201.4912,1.3231,159.4734,1.3231,0.49,74.88,PASS
+nyc_taxi_real,B_far,27,SELECT AVG(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2,224.0255,9.2007,121.9592,9.2007,116.7125,9.2007,0.52,74.85,PASS
+nyc_taxi_real,B_far,28,SELECT AVG(tip_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2,218.6066,0.9999,124.9025,0.9999,114.04,0.9999,0.52,74.85,PASS
+nyc_taxi_real,B_far,29,SELECT AVG(fare_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15,210.9071,7.008,125.4018,7.008,101.7601,7.008,0.48,74.85,PASS
+nyc_taxi_real,B_far,30,SELECT AVG(trip_distance) FROM data WHERE fare_amount < 10 AND total_amount < 14,167.9599,1.1494,123.1121,1.1494,138.7896,1.1494,0.83,56.32,PASS
+nyc_taxi_real,B_far,31,SELECT AVG(total_amount) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5 AND tip_amount < 2,151.9538,7.9986,109.8778,7.9986,98.6557,7.9986,0.65,56.29,PASS
+nyc_taxi_real,B_far,32,SELECT AVG(fare_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15 AND tip_amount < 2,217.3928,6.7258,123.7993,6.7258,107.4752,6.7258,0.49,74.85,PASS
+nyc_taxi_real,B_far,33,SELECT SUM(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2,238.9628,9975487.61,131.1176,9975487.61,108.7886,9975487.61,0.46,74.85,PASS
+nyc_taxi_real,B_far,34,SELECT SUM(fare_amount) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5,167.969,5103838.69,129.8784,5103838.69,105.6266,5103838.69,0.63,56.29,PASS
+nyc_taxi_real,B_far,35,SELECT SUM(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15,245.4569,9685928.13,143.1287,9685928.13,108.4024,9685928.13,0.44,74.85,PASS
+nyc_taxi_real,B_far,36,SELECT SUM(fare_amount) FROM data WHERE fare_amount < 10 AND trip_distance < 1.5 AND total_amount < 14 AND tip_amount < 1.5,135.4723,3525546.92,117.7994,3525546.92,100.2145,3525546.92,0.74,48.02,PASS
+nyc_taxi_real,B_far,37,SELECT SUM(total_amount) FROM data WHERE fare_amount < 12 AND trip_distance < 2 AND total_amount < 15 AND tip_amount < 2,216.651,8009049.5,123.7827,8009049.5,104.2326,8009049.5,0.48,74.85,PASS

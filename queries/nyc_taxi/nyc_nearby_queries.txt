@@ -1,0 +1,54 @@
+# GROUP A - Nearby (IN-DISTRIBUTION)
+# Tight premium/long-haul zone — strict subset of training zone.
+# Training: fare_amount > 30, trip_distance > 8  (~10-15% of data)
+# Nearby:   fare_amount > 40, trip_distance > 10 (airport runs, ~5% of data)
+# Tsunami has fine-grained partitions in the premium region -> low scan%, high speedup.
+
+# COUNT + 1 attribute
+SELECT COUNT(*) FROM data WHERE fare_amount > 40
+SELECT COUNT(*) FROM data WHERE fare_amount > 45
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 90
+SELECT COUNT(*) FROM data WHERE trip_distance > 10
+SELECT COUNT(*) FROM data WHERE trip_distance > 12
+SELECT COUNT(*) FROM data WHERE trip_distance BETWEEN 10 AND 30
+SELECT COUNT(*) FROM data WHERE total_amount > 50
+
+# COUNT + 2 attributes
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10
+SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 12
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 90 AND trip_distance BETWEEN 10 AND 25
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND total_amount > 50
+SELECT COUNT(*) FROM data WHERE trip_distance > 10 AND total_amount > 50
+SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND tip_amount > 4
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND tip_amount > 5
+SELECT COUNT(*) FROM data WHERE trip_distance > 12 AND total_amount > 55
+SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 10
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 80 AND total_amount BETWEEN 48 AND 100
+
+# COUNT + 3 attributes
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50
+SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND total_amount > 55
+SELECT COUNT(*) FROM data WHERE fare_amount BETWEEN 40 AND 80 AND trip_distance BETWEEN 10 AND 25 AND total_amount > 50
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND tip_amount > 4
+SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND total_amount > 55 AND tip_amount > 5
+
+# COUNT + 4 attributes
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50 AND tip_amount > 4
+SELECT COUNT(*) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND total_amount > 55 AND tip_amount > 5
+
+# AVG
+SELECT AVG(fare_amount) FROM data WHERE trip_distance > 10
+SELECT AVG(trip_distance) FROM data WHERE fare_amount > 40
+SELECT AVG(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10
+SELECT AVG(tip_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10
+SELECT AVG(fare_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50
+SELECT AVG(trip_distance) FROM data WHERE fare_amount > 45 AND total_amount > 55
+SELECT AVG(total_amount) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND tip_amount > 5
+SELECT AVG(fare_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50 AND tip_amount > 4
+
+# SUM
+SELECT SUM(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10
+SELECT SUM(fare_amount) FROM data WHERE fare_amount > 45 AND trip_distance > 12
+SELECT SUM(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50
+SELECT SUM(fare_amount) FROM data WHERE fare_amount > 45 AND trip_distance > 12 AND total_amount > 55 AND tip_amount > 5
+SELECT SUM(total_amount) FROM data WHERE fare_amount > 40 AND trip_distance > 10 AND total_amount > 50 AND tip_amount > 4
