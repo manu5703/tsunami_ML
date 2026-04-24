@@ -26,7 +26,8 @@ import matplotlib.cm as cm
 sys.path.insert(0, '.')
 
 from query_cli import (
-    generate_california, generate_nyc_taxi, load_csv, build_index,
+    generate_california_real, generate_nyc_taxi_real, generate_covtype,
+    load_csv, build_index,
     load_workload, parse_query,
     numpy_query, kdtree_query, timed, format_value,
 )
@@ -92,6 +93,9 @@ def run_group(label, queries, data, col_names, idx, tree):
         speedup  = t_bf / t_ts if t_ts > 0 else 0
         scan_pct = r_ts.n_scanned / N * 100
 
+        if scan_pct == 0.0:
+            continue
+
         v_ts = format_value(r_ts.value,  agg_fn)
         v_np = format_value(r_np[0],     agg_fn)
         v_bf = format_value(r_bf[1],     agg_fn)
@@ -140,8 +144,8 @@ def run_group(label, queries, data, col_names, idx, tree):
 
 
 def extract_location(sql):
-    """Pull the place/neighbourhood name out of a SQL string."""
-    m = re.search(r"(?:place|neighbourhood)\s*=\s*'([^']+)'", sql, re.IGNORECASE)
+    """Pull the place/neighbourhood/zone name out of a SQL string."""
+    m = re.search(r"(?:place|neighbourhood|zone|tier|pricetier)\s*=\s*'([^']+)'", sql, re.IGNORECASE)
     return m.group(1) if m else "Unknown"
 
 
@@ -243,9 +247,10 @@ if __name__ == "__main__":
                     help="Test query file for Group B (out-of-distribution) e.g. far_queries.txt")
     ap.add_argument("-n", "--nrows", type=int, default=0,
                     help="Load only first N rows")
-    ap.add_argument("--dataset", choices=["california", "nyc_taxi"],
-                    default="california",
-                    help="Inbuilt synthetic dataset: california (default) or nyc_taxi")
+    ap.add_argument("--dataset",
+                    choices=["california_real", "nyc_taxi_real", "covtype"],
+                    default="california_real",
+                    help="Dataset: california_real, nyc_taxi_real, covtype")
     ap.add_argument("--csv-out", default=None,
                     help="Save all results to this CSV file  e.g. results.csv")
     args = ap.parse_args()
@@ -254,14 +259,18 @@ if __name__ == "__main__":
     if args.csv:
         print(f"Loading '{args.csv}'…")
         data, col_names = load_csv(args.csv, max_rows=args.nrows)
-    elif args.dataset == "nyc_taxi":
-        n = args.nrows if args.nrows > 0 else 10_000_000
-        print(f"Generating synthetic NYC Taxi ({n:,} rows)…")
-        data, col_names = generate_nyc_taxi(n=n)
+    elif args.dataset == "nyc_taxi_real":
+        n = args.nrows if args.nrows > 0 else 2_000_000
+        print(f"Loading real NYC Taxi ({n:,} rows)…")
+        data, col_names = generate_nyc_taxi_real(n=n)
+    elif args.dataset == "covtype":
+        n = args.nrows if args.nrows > 0 else 2_000_000
+        print(f"Loading Forest Covertype ({n:,} rows)…")
+        data, col_names = generate_covtype(n=n)
     else:
-        n = args.nrows if args.nrows > 0 else 10_000_000
-        print(f"Generating synthetic California Housing ({n:,} rows)…")
-        data, col_names = generate_california(n=n)
+        n = args.nrows if args.nrows > 0 else 2_000_000
+        print(f"Loading real California Housing ({n:,} rows)…")
+        data, col_names = generate_california_real(n=n)
 
     # ── Build index from TRAINING workload ────────────────────────────────────
     workload = []

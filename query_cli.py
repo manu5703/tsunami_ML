@@ -26,7 +26,7 @@ def _extract_datetime_features(df):
             df = df.drop(columns=[col])
         elif df[col].dtype == object:
             try:
-                parsed = pd.to_datetime(df[col], infer_datetime_format=True, errors='raise')
+                parsed = pd.to_datetime(df[col], errors='raise')
                 df[col + '_hour']      = parsed.dt.hour.astype(np.float64)
                 df[col + '_dayofweek'] = parsed.dt.dayofweek.astype(np.float64)
                 df[col + '_month']     = parsed.dt.month.astype(np.float64)
@@ -43,6 +43,9 @@ def load_csv(path, max_rows=0):
     if ext == '.parquet':
         print(f"  Reading parquet '{name}'…")
         df = pd.read_parquet(path)
+    elif ext in ('.xlsx', '.xls'):
+        print(f"  Reading Excel '{name}'…")
+        df = pd.read_excel(path)
     else:
         file_mb = os.path.getsize(path) / 1_048_576
         if file_mb > 500:
@@ -69,6 +72,29 @@ def load_csv(path, max_rows=0):
 
     if df.empty:
         raise ValueError(f"No usable numeric columns in '{name}'")
+
+    # Sanitize column names: remove dots/special chars so the SQL parser can handle them
+    # e.g. 'PM2.5' → 'PM25'
+    df.columns = [
+        re.sub(r'[^A-Za-z0-9_]', '', col.replace(' ', '_').replace('-', '_')) or f'col_{i}'
+        for i, col in enumerate(df.columns)
+    ]
+
+    # Drop columns that cause Tsunami's linregress to fail inside leaf regions:
+    #   (a) near-constant: ≥75% of rows share one value (e.g. Is, Ir)
+    #   (b) low-cardinality: <50 distinct values (e.g. year=5, month=12, hour=24)
+    #       — a leaf covering one season can make such a column all-identical.
+    dropped = []
+    for col in list(df.columns):
+        vc = df[col].value_counts(normalize=True)
+        if len(vc) == 0 or vc.iloc[0] >= 0.75 or len(vc) < 50:
+            df = df.drop(columns=[col])
+            dropped.append(col)
+    if dropped:
+        print(f"  Dropped column(s): {', '.join(dropped)}")
+
+    if df.empty:
+        raise ValueError(f"No usable columns remain after filtering in '{name}'")
 
     print(f"  Loaded {len(df):,} rows x {len(df.columns)} columns from '{name}'")
     return df.values.astype(np.float64), list(df.columns)
@@ -143,11 +169,112 @@ def generate_nyc_taxi(n=200_000):
     return data, col_names
 
 
+
+def _oversample(real_data, n, rng, jitter_scale=0.01):
+    m = len(real_data)
+    if n <= m:
+        return real_data[rng.choice(m, n, replace=False)]
+    repeats = (n // m) + 1
+    tiled = np.tile(real_data, (repeats, 1))[:n]
+    stds = real_data.std(axis=0)
+    stds[stds == 0] = 1.0
+    tiled += rng.normal(0, jitter_scale, tiled.shape) * stds
+    return tiled
+
+
+def generate_california_real(n=2_000_000):
+    from sklearn.datasets import fetch_california_housing
+    rng = np.random.default_rng(42)
+    print("  Fetching real California Housing dataset from sklearn…")
+    ds = fetch_california_housing()
+    col_names = list(ds.feature_names) + ['MedHouseVal']
+    real_data = np.column_stack([ds.data, ds.target])
+    print(f"  Loaded real California Housing ({len(real_data):,} rows).")
+    real_data = _oversample(real_data, n, rng)
+    mb = real_data.nbytes / 1_048_576
+    print(f"  Oversampled to {n:,} rows, {mb:,.0f} MB.")
+    return real_data, col_names
+
+
+def generate_nyc_taxi_real(n=2_000_000):
+    rng = np.random.default_rng(7)
+    # Look for a locally downloaded parquet file first
+    for fname in sorted(os.listdir('.')):
+        if ('tripdata' in fname.lower() or 'taxi' in fname.lower()) \
+                and fname.endswith(('.parquet', '.csv')):
+            print(f"  Loading local taxi file: {fname}")
+            data, col_names = load_csv(fname)
+            data = _oversample(data, n, rng)
+            return data, col_names
+    # Try downloading 2016 yellow taxi (last year with lat/lon columns)
+    url = ("https://d37ci6vzurychx.cloudfront.net/trip-data/"
+           "yellow_tripdata_2016-06.parquet")
+    try:
+        print("  Downloading NYC Yellow Taxi 2016-06 from TLC…")
+        df = pd.read_parquet(url)
+        rename = {
+            'pickup_latitude':  'Latitude',
+            'pickup_longitude': 'Longitude',
+            'dropoff_latitude':  'dropoff_lat',
+            'dropoff_longitude': 'dropoff_lon',
+        }
+        df = df.rename(columns={k: v for k, v in rename.items() if k in df.columns})
+        df = df.select_dtypes(include=[np.number])
+        df = df.replace([np.inf, -np.inf], np.nan).dropna()
+        # Drop near-constant / low-cardinality columns
+        for col in list(df.columns):
+            vc = df[col].value_counts(normalize=True)
+            if len(vc) == 0 or vc.iloc[0] >= 0.75 or len(vc) < 50:
+                df = df.drop(columns=[col])
+        print(f"  Downloaded {len(df):,} rows, cols: {list(df.columns)}")
+        real_data = df.values.astype(np.float64)
+        col_names = list(df.columns)
+        real_data = _oversample(real_data, n, rng)
+        mb = real_data.nbytes / 1_048_576
+        print(f"  Oversampled to {n:,} rows, {mb:,.0f} MB.")
+        return real_data, col_names
+    except Exception as e:
+        raise RuntimeError(
+            f"Could not download NYC Taxi data: {e}\n"
+            "  Download a monthly parquet from:\n"
+            "    https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page\n"
+            "  (use a 2015–2016 file for lat/lon columns), then run:\n"
+            "    python batch_test.py yellow_tripdata_2016-06.parquet "
+            "-w nyc_training_queries.txt ..."
+        )
+
+
+def generate_covtype(n=2_000_000):
+    from sklearn.datasets import fetch_covtype
+    rng = np.random.default_rng(99)
+    print("  Fetching Forest Covertype dataset from sklearn…")
+    ds = fetch_covtype()
+    col_names = [
+        'Elevation', 'Aspect', 'Slope',
+        'Horiz_Dist_Hydrology', 'Vert_Dist_Hydrology',
+        'Horiz_Dist_Roadways', 'Hillshade_9am', 'Hillshade_Noon', 'Hillshade_3pm',
+        'Horiz_Dist_Fire_Points',
+    ]
+    real_data = ds.data[:, :10].astype(np.float64)   # first 10 = continuous features
+    print(f"  Loaded real Forest Covertype ({len(real_data):,} rows).")
+    real_data = _oversample(real_data, n, rng)
+    mb = real_data.nbytes / 1_048_576
+    print(f"  Oversampled to {n:,} rows, {mb:,.0f} MB.")
+    return real_data, col_names
+
+
 def build_index(data, col_names, workload=[]):
     use_agd = len(workload) > 0
+    # Deeper tree + more AGD iterations when a training workload drives the build.
+    # gt_max_depth=4 → up to 16 leaf regions, enough to isolate a 1-2% tight cluster.
+    # gt_min_points_frac=0.005 → allows leaves as small as 0.5% of data.
+    gt_depth  = 4 if use_agd else 2
+    agd_iters = 10 if use_agd else 3
     cfg = TsunamiConfig(
         col_names=col_names,
-        gt_max_depth=2, agd_max_iter=3,
+        gt_max_depth=gt_depth,
+        gt_min_points_frac=0.005,
+        agd_max_iter=agd_iters,
         agd_enabled=use_agd, delta_enabled=False,
         shift_detection_enabled=False, verbose=False,
     )
@@ -227,6 +354,35 @@ try:
         print()
 
     _register_lookup("neighbourhood", _nyc_handler, _nyc_describe)
+
+except ImportError:
+    pass
+
+
+try:
+    from covtype_zones import lookup as _zone_lookup, list_zones as _zone_list
+
+    def _zone_handler(value, col_names, ranges):
+        try:
+            zone_ranges = _zone_lookup(value)
+        except KeyError as e:
+            raise ParseError(str(e))
+        for col, (lo, hi) in zone_ranges.items():
+            if col in ranges:
+                ranges[col][0] = max(ranges[col][0], lo)
+                ranges[col][1] = min(ranges[col][1], hi)
+
+    def _zone_describe():
+        df = _zone_list()
+        print()
+        print(f"  {'Zone':<14} {'Elevation':>14} {'Slope':>10} {'% data':>7}  Description")
+        print("  " + "-" * 90)
+        for _, row in df.iterrows():
+            print(f"  {row['Zone']:<14} {row['Elevation']:>14} {row['Slope']:>10} "
+                  f"{row['% of data']:>7}  {row['Description']}")
+        print()
+
+    _register_lookup("zone", _zone_handler, _zone_describe)
 
 except ImportError:
     pass
@@ -532,6 +688,7 @@ HELP_MSG = """
     tables                 list all loaded tables
     places                 show California place lookup table
     neighbourhoods         show NYC neighbourhood lookup table
+    zones                  show Covertype elevation/slope zone table
     help                   show this message
     quit                   exit
 """
@@ -722,25 +879,31 @@ if __name__ == "__main__":
                     help="Training-query file")
     ap.add_argument("-n", "--nrows", type=int, default=0, metavar="N",
                     help="Load only first N rows")
-    ap.add_argument("--dataset", choices=["california", "nyc_taxi"],
-                    default="california",
-                    help="Inbuilt synthetic dataset to use (default: california)")
+    ap.add_argument("--dataset",
+                    choices=["california_real", "nyc_taxi_real", "covtype"],
+                    default="california_real",
+                    help="Dataset: california_real, nyc_taxi_real, covtype")
     args = ap.parse_args()
 
     if args.csv:
         print(f"Loading '{args.csv}'…")
         data, col_names = load_csv(args.csv, max_rows=args.nrows)
         source = os.path.basename(args.csv)
-    elif args.dataset == "nyc_taxi":
-        n = args.nrows if args.nrows > 0 else 200_000
-        print(f"Loading NYC Taxi demo dataset ({n:,} rows)…")
-        data, col_names = generate_nyc_taxi(n=n)
-        source = "NYC Taxi"
+    elif args.dataset == "nyc_taxi_real":
+        n = args.nrows if args.nrows > 0 else 2_000_000
+        print(f"Loading real NYC Taxi ({n:,} rows)…")
+        data, col_names = generate_nyc_taxi_real(n=n)
+        source = "NYC Taxi (Real)"
+    elif args.dataset == "covtype":
+        n = args.nrows if args.nrows > 0 else 2_000_000
+        print(f"Loading Forest Covertype ({n:,} rows)…")
+        data, col_names = generate_covtype(n=n)
+        source = "Forest Covertype"
     else:
-        n = args.nrows if args.nrows > 0 else 30_000_000
-        print(f"Loading California Housing demo dataset ({n:,} rows)…")
-        data, col_names = generate_california(n=n)
-        source = "California Housing"
+        n = args.nrows if args.nrows > 0 else 2_000_000
+        print(f"Loading real California Housing ({n:,} rows)…")
+        data, col_names = generate_california_real(n=n)
+        source = "California Housing (Real)"
 
     workload = []
     if args.workload:
