@@ -1,40 +1,4 @@
-"""
-Tsunami — Complete Integrated Index
-======================================
-Paper: "Tsunami: A Learned Multi-dimensional Index for Correlated Data
-        and Skewed Workloads", Ding et al., PVLDB 2021
 
-This module wires together every component built across the series:
-
-  grid_tree.py          — Grid Tree (§4):  EMD-based skew reduction,
-                          DBSCAN query-type clustering, skew-tree DP
-  augmented_grid.py     — Augmented Grid (§5): FM, CCDF, independent CDF
-  cost_model_agd.py     — Cost model (§5.3.1) + AGD optimizer (§5.3.2)
-  physical_storage.py   — Column store + lookup table (§2.2, §6.1)
-  sort_dim_optimizer.py — Sort dimension selection (§2.2 footnote)
-  workload_shift.py     — Workload shift detection (§8)
-  delta_index.py        — Delta index for inserts/updates/deletes (§8)
-
-Public API
-----------
-  TsunamiConfig         — All tuning knobs in one dataclass.
-  TsunamiIndex          — Main class.
-
-    .build(data, queries)          — Full offline optimisation + build
-    .query(q)  → QueryResult       — Execute one analytical query
-    .batch(qs) → BatchResult       — Execute many queries + stats
-    .insert(row)   → RowId         — Buffer an insert
-    .update(rid, row) → RowId      — Buffer an update
-    .delete(rid)                   — Buffer a delete
-    .observe(q)                    — Feed query to workload monitor
-    .rebuild_if_shifted()          — Re-optimise if monitor fired
-    .stats()   → dict              — Runtime statistics
-    .brute_force(data, q)          — Correctness reference
-
-Dependencies:
-    All modules above must be in the same directory.
-    pip install numpy scipy scikit-learn
-"""
 
 from __future__ import annotations
 
@@ -87,7 +51,6 @@ try:
     _HAS_PS = True
 except ImportError:
     _HAS_PS = False
-    print("[Tsunami] WARNING: physical_storage.py not found")
 
 try:
     from sort_dim_optimizer import SortDimOptimizer, apply_sort_dim
@@ -103,7 +66,6 @@ try:
     _HAS_WS = True
 except ImportError:
     _HAS_WS = False
-    print("[Tsunami] WARNING: workload_shift.py not found — no shift detection")
 
 try:
     from delta_index import (
@@ -113,7 +75,6 @@ try:
     _HAS_DI = True
 except ImportError:
     _HAS_DI = False
-    print("[Tsunami] WARNING: delta_index.py not found — read-only mode")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -319,30 +280,7 @@ def _merge_aggs(parts: list[tuple[int, float]], fn: str) -> float:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TsunamiIndex:
-    """
-    Complete integrated Tsunami index.
 
-    Build
-    -----
-    idx = TsunamiIndex(TsunamiConfig(verbose=True))
-    idx.build(data, queries)
-
-    Query
-    -----
-    result = idx.query(Query([(40.0, 60.0), (30.0, 50.0)], agg_fn="count"))
-    batch  = idx.batch([q1, q2, ...])
-
-    Mutations (requires delta_enabled=True)
-    ----------------------------------------
-    rid = idx.insert(np.array([55.0, 42.0]))
-    rid = idx.update(rid, np.array([56.0, 43.0]))
-    idx.delete(rid)
-
-    Workload monitoring
-    -------------------
-    idx.observe(incoming_query)        # feed to shift detector
-    idx.rebuild_if_shifted()           # re-optimise if shift detected
-    """
 
     def __init__(self, config: Optional[TsunamiConfig] = None):
         self.cfg     = config or TsunamiConfig()

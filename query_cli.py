@@ -321,6 +321,7 @@ try:
         print()
 
     _register_lookup("place", _place_handler, _place_describe)
+    _register_lookup("places", _place_handler, _place_describe)
 
 except ImportError:
     pass
@@ -354,6 +355,7 @@ try:
         print()
 
     _register_lookup("neighbourhood", _nyc_handler, _nyc_describe)
+    _register_lookup("neighbourhoods", _nyc_handler, _nyc_describe)
 
 except ImportError:
     pass
@@ -383,6 +385,7 @@ try:
         print()
 
     _register_lookup("zone", _zone_handler, _zone_describe)
+    _register_lookup("zones", _zone_handler, _zone_describe)
 
 except ImportError:
     pass
@@ -686,9 +689,9 @@ HELP_MSG = """
     workload <file.txt>    rebuild index with training queries
     columns                show all columns + min/max
     tables                 list all loaded tables
-    places                 show California place lookup table
-    neighbourhoods         show NYC neighbourhood lookup table
-    zones                  show Covertype elevation/slope zone table
+    zone                   show Covertype elevation/slope zone table
+    place                  show California place lookup table
+    neighbourhood          show NYC neighbourhood lookup table
     help                   show this message
     quit                   exit
 """

@@ -12,7 +12,7 @@ Python 3.9 or higher is required.
 
 ### Install dependencies
 ```
-pip install numpy pandas scikit-learn matplotlib pyarrow
+pip install numpy pandas scikit-learn matplotlib scipy pyarrow
 ```
 
 ### Folder structure
