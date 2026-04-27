@@ -30,6 +30,7 @@ from query_cli import (
     load_csv, build_index,
     load_workload, parse_query,
     numpy_query, kdtree_query, timed, format_value,
+    ZOrderIndex,
 )
 from sklearn.neighbors import KDTree
 
@@ -56,17 +57,18 @@ def _close(a, b):
     return abs(a - b) / max(abs(b), 1e-9) < 1e-4
 
 
-def run_group(label, queries, data, col_names, idx, tree):
+def run_group(label, queries, data, col_names, idx, tree, zo):
     N = len(data)
     rows = []
 
-    W = 140
+    W = 160
     print(f"\n{'═' * W}")
     print(f"  {label}  ({len(queries)} queries)")
     print(f"{'═' * W}")
     print(f"  {'#':>3}  {'Query':<52}  "
           f"{'Tsunami':>9} {'Ans-TS':>12}  "
           f"{'NumPy':>9} {'Ans-NP':>12}  "
+          f"{'Z-order':>9} {'Ans-ZO':>12}  "
           f"{'BruteF':>9} {'Ans-BF':>12}  "
           f"{'Speedup':>8}  {'Scan%':>6}  {'Match':>5}")
     print(f"  {'-' * (W-2)}")
@@ -85,6 +87,7 @@ def run_group(label, queries, data, col_names, idx, tree):
                 (r_kd, t_kd) = timed(lambda: kdtree_query(tree, data, q))
             else:
                 r_kd, t_kd = None, float('nan')
+            (r_zo, t_zo) = timed(lambda: zo.query(q)) if zo else (None, float('nan'))
             (r_bf, t_bf) = timed(lambda: idx.brute_force(q))
         except Exception as e:
             print(f"  {i:>3}  RUNTIME ERROR: {e}")
@@ -96,47 +99,54 @@ def run_group(label, queries, data, col_names, idx, tree):
         if scan_pct == 0.0:
             continue
 
-        v_ts = format_value(r_ts.value,  agg_fn)
-        v_np = format_value(r_np[0],     agg_fn)
-        v_bf = format_value(r_bf[1],     agg_fn)
+        v_ts = format_value(r_ts.value, agg_fn)
+        v_np = format_value(r_np[0],    agg_fn)
+        v_zo = format_value(r_zo[0],    agg_fn) if r_zo else 'n/a'
+        v_bf = format_value(r_bf[1],    agg_fn)
 
-        np_ok  = _close(r_np[0],  r_ts.value)
-        bf_ok  = _close(r_bf[1],  r_ts.value)
-        match  = "PASS" if (np_ok and bf_ok) else "FAIL"
+        np_ok = _close(r_np[0], r_ts.value)
+        zo_ok = _close(r_zo[0], r_ts.value) if r_zo else True
+        bf_ok = _close(r_bf[1], r_ts.value)
+        match = "PASS" if (np_ok and zo_ok and bf_ok) else "FAIL"
 
         print(f"  {i:>3}  {shorten(sql):<52}  "
               f"{t_ts:>8.2f}ms {v_ts:>12}  "
               f"{t_np:>8.2f}ms {v_np:>12}  "
+              f"{t_zo:>8.2f}ms {v_zo:>12}  "
               f"{t_bf:>8.2f}ms {v_bf:>12}  "
               f"{speedup:>7.1f}x  {scan_pct:>5.1f}%  {match:>5}")
 
         rows.append(dict(
             query=sql,
-            t_ts=t_ts,    ans_ts=r_ts.value,
-            t_np=t_np,    ans_np=r_np[0],
+            t_ts=t_ts, ans_ts=r_ts.value,
+            t_np=t_np, ans_np=r_np[0],
+            t_zo=t_zo, ans_zo=r_zo[0] if r_zo else float('nan'),
             t_kd=t_kd,
-            t_bf=t_bf,    ans_bf=r_bf[1],
+            t_bf=t_bf, ans_bf=r_bf[1],
             speedup=speedup, scan_pct=scan_pct, match=match,
         ))
 
     if not rows:
         return rows
 
-    def avg(key): return sum(r[key] for r in rows) / len(rows)
+    def avg(key): return sum(r[key] for r in rows if not (isinstance(r[key], float) and r[key] != r[key])) / len(rows)
     def med(key):
         vals = sorted(r[key] for r in rows if not (isinstance(r[key], float) and r[key] != r[key]))
         return vals[len(vals) // 2] if vals else float('nan')
 
-    print(f"\n  {'— SUMMARY —':<55}  {'Tsunami':>9}{'':>13}  {'NumPy':>9}{'':>13}  {'BruteF':>9}{'':>13}  {'Speedup':>8}  {'Scan%':>6}")
+    print(f"\n  {'— SUMMARY —':<55}  {'Tsunami':>9}{'':>13}  {'NumPy':>9}{'':>13}  "
+          f"{'Z-order':>9}{'':>13}  {'BruteF':>9}{'':>13}  {'Speedup':>8}  {'Scan%':>6}")
     print(f"  {'-' * (W-2)}")
     print(f"  {'Average':<55}  "
           f"{avg('t_ts'):>8.2f}ms {'':>12}  "
           f"{avg('t_np'):>8.2f}ms {'':>12}  "
+          f"{avg('t_zo'):>8.2f}ms {'':>12}  "
           f"{avg('t_bf'):>8.2f}ms {'':>12}  "
           f"{avg('speedup'):>7.1f}x  {avg('scan_pct'):>5.1f}%")
     print(f"  {'Median':<55}  "
           f"{med('t_ts'):>8.2f}ms {'':>12}  "
           f"{med('t_np'):>8.2f}ms {'':>12}  "
+          f"{med('t_zo'):>8.2f}ms {'':>12}  "
           f"{med('t_bf'):>8.2f}ms {'':>12}  "
           f"{med('speedup'):>7.1f}x  {med('scan_pct'):>5.1f}%")
 
@@ -291,6 +301,9 @@ if __name__ == "__main__":
         print(f"  KDTree skipped ({len(data):,} rows > {_KDTREE_LIMIT:,} limit).")
         tree = None
 
+    print("Building Z-order index…")
+    zo = ZOrderIndex(data)
+
     print("  Ready.\n")
 
     # ── Load TEST query files ─────────────────────────────────────────────────
@@ -311,11 +324,11 @@ if __name__ == "__main__":
     # ── Run benchmarks ────────────────────────────────────────────────────────
     rows_a = run_group(
         f"GROUP A — NEARBY  [IN-DISTRIBUTION]  ({args.group_a})",
-        group_a_queries, data, col_names, idx, tree,
+        group_a_queries, data, col_names, idx, tree, zo,
     )
     rows_b = run_group(
         f"GROUP B — FAR AWAY  [OUT-OF-DISTRIBUTION]  ({args.group_b})",
-        group_b_queries, data, col_names, idx, tree,
+        group_b_queries, data, col_names, idx, tree, zo,
     )
 
     # ── Final side-by-side comparison ────────────────────────────────────────
@@ -324,22 +337,23 @@ if __name__ == "__main__":
             vals = [r[key] for r in rows if not (isinstance(r[key], float) and r[key] != r[key])]
             return sum(vals) / len(vals) if vals else float('nan')
 
-        print(f"\n{'═' * 62}")
+        print(f"\n{'═' * 68}")
         print("  OVERALL COMPARISON  (avg across all queries in each group)")
-        print(f"{'═' * 62}")
-        print(f"  {'Metric':<32} {'Group A (Nearby)':>14} {'Group B (Far)':>14}")
-        print(f"  {'-' * 60}")
+        print(f"{'═' * 68}")
+        print(f"  {'Metric':<38} {'Group A (Nearby)':>14} {'Group B (Far)':>14}")
+        print(f"  {'-' * 66}")
         for key, label, fmt in [
             ('t_ts',     'Avg Tsunami time (ms)',      '{:.2f}'),
             ('t_np',     'Avg NumPy time (ms)',         '{:.2f}'),
+            ('t_zo',     'Avg Z-order time (ms)',       '{:.2f}'),
             ('t_bf',     'Avg Brute Force time (ms)',   '{:.2f}'),
             ('speedup',  'Avg Speedup  BF / Tsunami',  '{:.1f}x'),
             ('scan_pct', 'Avg Scan %',                 '{:.1f}%'),
         ]:
             nv = avg(rows_a, key)
             fv = avg(rows_b, key)
-            print(f"  {label:<32} {fmt.format(nv):>14} {fmt.format(fv):>14}")
-        print(f"{'═' * 62}\n")
+            print(f"  {label:<38} {fmt.format(nv):>14} {fmt.format(fv):>14}")
+        print(f"{'═' * 68}\n")
 
     # ── Write CSV ─────────────────────────────────────────────────────────────
     csv_path = args.csv_out or f"results_{args.dataset}.csv"
@@ -347,6 +361,7 @@ if __name__ == "__main__":
         'dataset', 'group', 'query_no', 'query',
         'tsunami_ms', 'tsunami_answer',
         'numpy_ms',   'numpy_answer',
+        'zorder_ms',  'zorder_answer',
         'bruteforce_ms', 'bruteforce_answer',
         'speedup_x', 'scan_pct', 'match',
     ]
@@ -357,19 +372,21 @@ if __name__ == "__main__":
         for group_label, rows in [('A_nearby', rows_a), ('B_far', rows_b)]:
             for i, r in enumerate(rows, 1):
                 writer.writerow({
-                    'dataset':          dataset_label,
-                    'group':            group_label,
-                    'query_no':         i,
-                    'query':            r['query'],
-                    'tsunami_ms':       round(r['t_ts'], 4),
-                    'tsunami_answer':   round(r['ans_ts'], 4) if isinstance(r['ans_ts'], float) else r['ans_ts'],
-                    'numpy_ms':         round(r['t_np'], 4),
-                    'numpy_answer':     round(r['ans_np'], 4) if isinstance(r['ans_np'], float) else r['ans_np'],
-                    'bruteforce_ms':    round(r['t_bf'], 4),
-                    'bruteforce_answer':round(r['ans_bf'], 4) if isinstance(r['ans_bf'], float) else r['ans_bf'],
-                    'speedup_x':        round(r['speedup'], 2),
-                    'scan_pct':         round(r['scan_pct'], 2),
-                    'match':            r['match'],
+                    'dataset':           dataset_label,
+                    'group':             group_label,
+                    'query_no':          i,
+                    'query':             r['query'],
+                    'tsunami_ms':        round(r['t_ts'], 4),
+                    'tsunami_answer':    round(r['ans_ts'], 4) if isinstance(r['ans_ts'], float) else r['ans_ts'],
+                    'numpy_ms':          round(r['t_np'], 4),
+                    'numpy_answer':      round(r['ans_np'], 4) if isinstance(r['ans_np'], float) else r['ans_np'],
+                    'zorder_ms':     round(r['t_zo'], 4),
+                    'zorder_answer': round(r['ans_zo'], 4) if isinstance(r['ans_zo'], float) else r['ans_zo'],
+                    'bruteforce_ms':     round(r['t_bf'], 4),
+                    'bruteforce_answer': round(r['ans_bf'], 4) if isinstance(r['ans_bf'], float) else r['ans_bf'],
+                    'speedup_x':         round(r['speedup'], 2),
+                    'scan_pct':          round(r['scan_pct'], 2),
+                    'match':             r['match'],
                 })
     print(f"  Results saved to '{csv_path}'")
 

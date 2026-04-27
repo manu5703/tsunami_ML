@@ -600,6 +600,69 @@ def timed(fn, reps=3):
     return result, (time.perf_counter() - t0) / reps * 1000
 
 
+class ZOrderIndex:
+    def __init__(self, data):
+        self.data     = data
+        self.n        = data.shape[0]
+        self.n_dims   = data.shape[1]
+        self.bits     = min(60 // self.n_dims, 10)
+        self.max_val  = (1 << self.bits) - 1
+        self.col_min  = data.min(axis=0)
+        self.col_max  = data.max(axis=0)
+        self.col_rng  = np.where(self.col_max > self.col_min,
+                                 self.col_max - self.col_min, 1.0)
+        z = self._z_values(data)
+        self.order    = np.argsort(z)
+        self.sorted   = data[self.order]
+        self.sorted_z = z[self.order]
+
+    def _to_int(self, vals, dim):
+        norm = (vals - self.col_min[dim]) / self.col_rng[dim]
+        return np.clip((norm * self.max_val).astype(np.int64), 0, self.max_val)
+
+    def _z_values(self, pts):
+        z = np.zeros(len(pts), dtype=np.int64)
+        for d in range(self.n_dims):
+            iv = self._to_int(pts[:, d], d)
+            for b in range(self.bits):
+                z |= ((iv >> b) & 1).astype(np.int64) << (b * self.n_dims + d)
+        return z
+
+    def _scalar_z(self, point):
+        z = 0
+        for d in range(self.n_dims):
+            norm = (point[d] - self.col_min[d]) / self.col_rng[d]
+            iv   = int(np.clip(norm * self.max_val, 0, self.max_val))
+            for b in range(self.bits):
+                z |= int((iv >> b) & 1) << (b * self.n_dims + d)
+        return z
+
+    def query(self, q):
+        lo = np.array([r[0] for r in q.ranges])
+        hi = np.array([r[1] for r in q.ranges])
+        z_lo = self._scalar_z(lo)
+        z_hi = self._scalar_z(hi)
+        if z_lo > z_hi:
+            z_lo, z_hi = z_hi, z_lo
+        start = int(np.searchsorted(self.sorted_z, z_lo))
+        end   = int(np.searchsorted(self.sorted_z, z_hi, side='right'))
+        cands = self.sorted[start:end]
+        mask  = np.ones(len(cands), dtype=bool)
+        for dim, (l, h) in enumerate(q.ranges):
+            mask &= (cands[:, dim] >= l) & (cands[:, dim] <= h)
+        matched = cands[mask]
+        n_scanned = end - start
+        if len(matched) == 0:
+            val = 0 if q.agg_fn == 'count' else float('nan')
+        elif q.agg_fn == 'count': val = len(matched)
+        elif q.agg_fn == 'avg':   val = matched[:, q.agg_col].mean()
+        elif q.agg_fn == 'sum':   val = matched[:, q.agg_col].sum()
+        elif q.agg_fn == 'min':   val = matched[:, q.agg_col].min()
+        elif q.agg_fn == 'max':   val = matched[:, q.agg_col].max()
+        else:                     val = float('nan')
+        return val, len(matched), n_scanned
+
+
 def format_value(val, agg_fn):
     if agg_fn == 'count':        return f"{int(val):,}"
     if abs(val) >= 1_000_000:    return f"{val:,.2f}"
@@ -607,8 +670,8 @@ def format_value(val, agg_fn):
     return f"{val:.4f}"
 
 
-def print_sql_result(agg_fn, agg_col_name, r_ts, r_np, r_kd, r_bf,
-                     t_ts, t_np, t_kd, t_bf, n_matched, n_scanned, n_total):
+def print_sql_result(agg_fn, agg_col_name, r_ts, r_np, r_kd, r_zo, r_bf,
+                     t_ts, t_np, t_kd, t_zo, t_bf, n_matched, n_scanned, n_total):
     col_label = f"{agg_fn.upper()}({agg_col_name or '*'})"
     val_str   = format_value(r_ts.value, agg_fn)
     width     = max(len(col_label), len(val_str), 20)
@@ -623,16 +686,18 @@ def print_sql_result(agg_fn, agg_col_name, r_ts, r_np, r_kd, r_bf,
     print(f"  {dim(f'{n_matched:,} row(s) matched  ·  scanned {n_scanned:,}/{n_total:,} ({n_scanned/n_total*100:.0f}%)')}")
 
     ref = r_ts.value
-    methods = [("Tsunami",    t_ts, r_ts.value),
-               ("NumPy",      t_np, r_np[0])]
-    if r_kd is not None:
-        methods.append(("KDTree", t_kd, r_kd[0]))
-    methods.append(("Brute Force", t_bf, r_bf[1]))
-    fastest = min(t for _, t, _ in methods)
 
     def close(a, b):
         if isinstance(a, float) and np.isnan(a): return False
         return abs(a - b) / max(abs(b), 1e-9) < 1e-4
+
+    methods = [("Tsunami",  t_ts, r_ts.value),
+               ("NumPy",    t_np, r_np[0]),
+               ("Z-order",  t_zo, r_zo[0] if r_zo is not None else float('nan'))]
+    if r_kd is not None:
+        methods.append(("KDTree", t_kd, r_kd[0]))
+    methods.append(("Brute Force", t_bf, r_bf[1]))
+    fastest = min(t for _, t, _ in methods if t > 0)
 
     print()
     print(f"  {'Method':<14} {'Time':>9}  {'Result':>18}  Note")
@@ -644,6 +709,8 @@ def print_sql_result(agg_fn, agg_col_name, r_ts, r_np, r_kd, r_bf,
         print(f"  {name:<14} {t:>7.3f}ms  {v_str:>18}  {correct}{flag}")
     if r_kd is None:
         print(f"  {'KDTree':<14} {'n/a':>9}  {'(skipped—too large)':>18}")
+    if r_zo is None:
+        print(f"  {'Z-order':<14} {'n/a':>9}  {'(skipped—too large)':>18}")
 
     bf_su = t_bf / t_ts if t_ts > 0 else 0
     print()
@@ -713,12 +780,13 @@ def print_columns(data, col_names):
     print()
 
 
-def run_repl(init_data, init_col_names, init_idx, init_tree, init_source):
+def run_repl(init_data, init_col_names, init_idx, init_tree, init_zo, init_source):
     state = {
         "data":      init_data,
         "col_names": init_col_names,
         "idx":       init_idx,
         "tree":      init_tree,
+        "zo":        init_zo,
         "source":    init_source,
     }
 
@@ -803,8 +871,10 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_source):
                 else:
                     print(f"  KDTree skipped ({len(new_data):,} rows).")
                     new_tree = None
+                print("  Building Z-order index…")
+                new_zo = ZOrderIndex(new_data)
                 state.update(data=new_data, col_names=new_cols,
-                             idx=new_idx, tree=new_tree,
+                             idx=new_idx, tree=new_tree, zo=new_zo,
                              source=os.path.basename(path))
                 header()
                 print()
@@ -848,6 +918,9 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_source):
                 return _data[mask]
             (np_filtered, t_np) = timed(_np_filter)
 
+            # Z-order filter
+            (r_zo, t_zo) = timed(lambda: state["zo"].query(q)) if state["zo"] else (None, 0.0)
+
             # BruteForce filter
             (r_bf, t_bf) = timed(lambda: _idx.brute_force(q))
 
@@ -863,18 +936,19 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_source):
             total_matched = len(np_filtered)
             rows = np_filtered[:lim, dcidx]
 
-            n_total   = len(_data)
-            scan_pct  = r_ts.n_scanned / n_total * 100
-            ts_total  = t_ts + t_sort
-            np_total  = t_np + t_sort
-            bf_total  = t_bf + t_sort
-            ts_su     = bf_total / ts_total if ts_total > 0 else 0
+            n_total  = len(_data)
+            scan_pct = r_ts.n_scanned / n_total * 100
+            bf_total = t_bf + t_sort
+
+            def _su(t): return bf_total / (t + t_sort) if (t + t_sort) > 0 else 0
 
             print()
             print(f"  {'Method':<14} {'Filter':>9}  {'Sort':>8}  {'Total':>9}  {'Scan%':>7}  {'vs BruteF':>10}")
             print("  " + "-" * 70)
-            print(f"  {'Tsunami':<14} {t_ts:>7.2f}ms  {t_sort:>6.2f}ms  {ts_total:>7.2f}ms  {scan_pct:>6.1f}%  {ts_su:>8.1f}x")
-            print(f"  {'NumPy':<14} {t_np:>7.2f}ms  {t_sort:>6.2f}ms  {np_total:>7.2f}ms  {'100.0':>6}%  {t_bf/np_total if np_total>0 else 0:>8.1f}x")
+            print(f"  {'Tsunami':<14} {t_ts:>7.2f}ms  {t_sort:>6.2f}ms  {t_ts+t_sort:>7.2f}ms  {scan_pct:>6.1f}%  {_su(t_ts):>8.1f}x")
+            print(f"  {'NumPy':<14} {t_np:>7.2f}ms  {t_sort:>6.2f}ms  {t_np+t_sort:>7.2f}ms  {'100.0':>6}%  {_su(t_np):>8.1f}x")
+            if state["zo"]:
+                print(f"  {'Z-order':<14} {t_zo:>7.2f}ms  {t_sort:>6.2f}ms  {t_zo+t_sort:>7.2f}ms  {'n/a':>6}   {_su(t_zo):>8.1f}x")
             print(f"  {'BruteForce':<14} {t_bf:>7.2f}ms  {t_sort:>6.2f}ms  {bf_total:>7.2f}ms  {'100.0':>6}%  {'1.0':>8}x")
             print()
             print(f"  {total_matched:,} rows matched  ·  Tsunami scanned {r_ts.n_scanned:,} / {n_total:,} ({scan_pct:.1f}%)")
@@ -897,13 +971,17 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_source):
                 (r_kd, t_kd) = timed(lambda: kdtree_query(state["tree"], state["data"], q))
             else:
                 r_kd, t_kd = None, 0.0
+            if state["zo"] is not None:
+                (r_zo, t_zo) = timed(lambda: state["zo"].query(q))
+            else:
+                r_zo, t_zo = None, 0.0
             (r_bf, t_bf) = timed(lambda: state["idx"].brute_force(q))
         except Exception as e:
             print(f"  {red('Runtime error:')} {e}\n")
             continue
 
-        print_sql_result(agg_fn, agg_col_name, r_ts, r_np, r_kd, r_bf,
-                         t_ts, t_np, t_kd, t_bf,
+        print_sql_result(agg_fn, agg_col_name, r_ts, r_np, r_kd, r_zo, r_bf,
+                         t_ts, t_np, t_kd, t_zo, t_bf,
                          r_ts.n_matched, r_ts.n_scanned, len(state["data"]))
         print()
 
@@ -978,6 +1056,10 @@ if __name__ == "__main__":
     else:
         print(f"  KDTree skipped ({len(data):,} rows > {_KDTREE_ROW_LIMIT:,} limit).")
         tree = None
+
+    print("Building Z-order index…")
+    zo = ZOrderIndex(data)
+
     print("  Ready.")
 
-    run_repl(data, col_names, idx, tree, source)
+    run_repl(data, col_names, idx, tree, zo, source)
