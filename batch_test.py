@@ -261,15 +261,15 @@ if __name__ == "__main__":
         data, col_names = load_csv(args.csv, max_rows=args.nrows)
     elif args.dataset == "nyc_taxi_real":
         n = args.nrows if args.nrows > 0 else 2_000_000
-        print(f"Loading real NYC Taxi ({n:,} rows)…")
+        print(f"Loading real NYC Taxi ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_nyc_taxi_real(n=n)
     elif args.dataset == "covtype":
         n = args.nrows if args.nrows > 0 else 2_000_000
-        print(f"Loading Forest Covertype ({n:,} rows)…")
+        print(f"Loading Forest Covertype ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_covtype(n=n)
     else:
         n = args.nrows if args.nrows > 0 else 2_000_000
-        print(f"Loading real California Housing ({n:,} rows)…")
+        print(f"Loading real California Housing ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_california_real(n=n)
 
     # ── Build index from TRAINING workload ────────────────────────────────────
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     else:
         print("  (no training file found — building index without workload)")
 
-    print("Building Tsunami index…")
+    print("Building Tsunami index… 🙏 This might take a while, please wait.")
     idx = build_index(data, col_names, workload)
 
     _KDTREE_LIMIT = 500_000

@@ -434,7 +434,7 @@ def parse_query(sql, data, col_names):
     return Query(range_list, agg_fn=agg_fn, agg_col=agg_col), agg_fn, agg_col_name
 
 
-def parse_row_query(sql, data, col_names):
+def _parse_row_meta(sql, data, col_names):
     sql = sql.strip().rstrip(';')
 
     limit = 50
@@ -476,10 +476,19 @@ def parse_row_query(sql, data, col_names):
         for cond in _split_conditions(where_m.group(1).strip()):
             _apply_condition(cond.strip(), ranges, col_names)
 
+    range_list = [(ranges[c][0], ranges[c][1]) for c in col_names]
+    q = Query(range_list, agg_fn='count', agg_col=None)
+
+    return q, ranges, display_cols, display_cidx, order_col, order_dir, order_cidx, limit
+
+
+def parse_row_query(sql, data, col_names):
+    q, ranges, display_cols, display_cidx, order_col, order_dir, order_cidx, limit = \
+        _parse_row_meta(sql, data, col_names)
+
     mask = np.ones(len(data), dtype=bool)
     for i, c in enumerate(col_names):
         mask &= (data[:, i] >= ranges[c][0]) & (data[:, i] <= ranges[c][1])
-
     filtered = data[mask]
 
     if order_cidx is not None and len(filtered):
@@ -489,9 +498,7 @@ def parse_row_query(sql, data, col_names):
         filtered = filtered[sort_idx]
 
     total_matched = len(filtered)
-    filtered      = filtered[:limit]
-
-    return (filtered[:, display_cidx], display_cols,
+    return (filtered[:limit, display_cidx], display_cols,
             order_col, order_dir, limit, total_matched, ranges)
 
 
@@ -820,12 +827,60 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_source):
 
         if is_row_query:
             try:
-                rows, dcols, ord_col, ord_dir, lim, total, _ = \
-                    parse_row_query(sql, state["data"], state["col_names"])
+                q, ranges, dcols, dcidx, ord_col, ord_dir, ord_cidx, lim = \
+                    _parse_row_meta(sql, state["data"], state["col_names"])
             except ParseError as e:
                 print(f"  {red('Parse error:')} {e}\n")
                 continue
-            print_row_table(rows, dcols, ord_col, ord_dir, lim, total)
+
+            _data = state["data"]
+            _idx  = state["idx"]
+            print(dim("  Running…"))
+
+            # Tsunami filter
+            (r_ts, t_ts) = timed(lambda: _idx.query(q))
+
+            # NumPy filter
+            def _np_filter():
+                mask = np.ones(len(_data), dtype=bool)
+                for i, c in enumerate(state["col_names"]):
+                    mask &= (_data[:, i] >= ranges[c][0]) & (_data[:, i] <= ranges[c][1])
+                return _data[mask]
+            (np_filtered, t_np) = timed(_np_filter)
+
+            # BruteForce filter
+            (r_bf, t_bf) = timed(lambda: _idx.brute_force(q))
+
+            # Sort (applied once to NumPy result for display)
+            t_sort_start = time.perf_counter()
+            if ord_cidx is not None and len(np_filtered):
+                sort_idx = np.argsort(np_filtered[:, ord_cidx])
+                if ord_dir == "DESC":
+                    sort_idx = sort_idx[::-1]
+                np_filtered = np_filtered[sort_idx]
+            t_sort = (time.perf_counter() - t_sort_start) * 1000
+
+            total_matched = len(np_filtered)
+            rows = np_filtered[:lim, dcidx]
+
+            n_total   = len(_data)
+            scan_pct  = r_ts.n_scanned / n_total * 100
+            ts_total  = t_ts + t_sort
+            np_total  = t_np + t_sort
+            bf_total  = t_bf + t_sort
+            ts_su     = bf_total / ts_total if ts_total > 0 else 0
+
+            print()
+            print(f"  {'Method':<14} {'Filter':>9}  {'Sort':>8}  {'Total':>9}  {'Scan%':>7}  {'vs BruteF':>10}")
+            print("  " + "-" * 70)
+            print(f"  {'Tsunami':<14} {t_ts:>7.2f}ms  {t_sort:>6.2f}ms  {ts_total:>7.2f}ms  {scan_pct:>6.1f}%  {ts_su:>8.1f}x")
+            print(f"  {'NumPy':<14} {t_np:>7.2f}ms  {t_sort:>6.2f}ms  {np_total:>7.2f}ms  {'100.0':>6}%  {t_bf/np_total if np_total>0 else 0:>8.1f}x")
+            print(f"  {'BruteForce':<14} {t_bf:>7.2f}ms  {t_sort:>6.2f}ms  {bf_total:>7.2f}ms  {'100.0':>6}%  {'1.0':>8}x")
+            print()
+            print(f"  {total_matched:,} rows matched  ·  Tsunami scanned {r_ts.n_scanned:,} / {n_total:,} ({scan_pct:.1f}%)")
+            print()
+
+            print_row_table(rows, dcols, ord_col, ord_dir, lim, total_matched)
             continue
 
         try:
@@ -894,17 +949,17 @@ if __name__ == "__main__":
         source = os.path.basename(args.csv)
     elif args.dataset == "nyc_taxi_real":
         n = args.nrows if args.nrows > 0 else 2_000_000
-        print(f"Loading real NYC Taxi ({n:,} rows)…")
+        print(f"Loading real NYC Taxi ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_nyc_taxi_real(n=n)
         source = "NYC Taxi (Real)"
     elif args.dataset == "covtype":
         n = args.nrows if args.nrows > 0 else 2_000_000
-        print(f"Loading Forest Covertype ({n:,} rows)…")
+        print(f"Loading Forest Covertype ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_covtype(n=n)
         source = "Forest Covertype"
     else:
         n = args.nrows if args.nrows > 0 else 2_000_000
-        print(f"Loading real California Housing ({n:,} rows)…")
+        print(f"Loading real California Housing ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_california_real(n=n)
         source = "California Housing (Real)"
 
@@ -913,7 +968,7 @@ if __name__ == "__main__":
         print(f"Loading training queries from '{args.workload}'…")
         workload = load_workload(args.workload, data, col_names)
 
-    print("Building Tsunami index…")
+    print("Building Tsunami index… 🙏 This might take a while, please wait.")
     idx = build_index(data, col_names, workload)
 
     _KDTREE_ROW_LIMIT = 2_000_000
