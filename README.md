@@ -13,6 +13,8 @@ docker build -t tsunami .
 
 **Run a single interactive query**
 
+California Housing:
+
 ```bash
 docker run -it --rm tsunami python query_cli.py --dataset california_real
 ```
@@ -22,6 +24,31 @@ Once the index is built, type a query at the prompt:
 ```
 SELECT COUNT(*) FROM data WHERE MedInc >= 7.0 AND HouseAge <= 20
 ```
+
+NYC Taxi:
+
+```bash
+docker run -it --rm tsunami python query_cli.py --dataset nyc_taxi_real
+```
+
+Example query:
+
+```
+SELECT COUNT(*) FROM data WHERE fare_amount > 40 AND trip_distance > 10
+```
+
+Covertype:
+
+```bash
+docker run -it --rm tsunami python query_cli.py --dataset covtype
+```
+
+Example query:
+
+```
+SELECT COUNT(*) FROM data WHERE Elevation > 3400 AND Slope > 20
+```
+
 
 ## 2. Overview
 
