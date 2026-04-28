@@ -50,6 +50,42 @@ SELECT COUNT(*) FROM data WHERE Elevation > 3400 AND Slope > 20
 ```
 
 
+**CLI Commands (inside the prompt)**
+
+Once the index is built and the `tsunami>` prompt appears, the following commands are available:
+
+| Command | Description |
+|---|---|
+| `help` | Show available commands and query syntax |
+| `columns` | List all columns with their min and max values |
+| `tables` | List all loaded tables and their dimensions |
+| `load <file.csv>` | Load a new CSV/Parquet file and rebuild the index |
+| `workload <file.txt>` | Reload the index using a new training query file |
+| `place` | Show the California place lookup table |
+| `neighbourhood` | Show the NYC neighbourhood lookup table |
+| `zone` | Show the Covertype elevation/slope zone table |
+| `quit` / `exit` | Exit the CLI |
+
+**Supported query syntax:**
+
+```
+SELECT COUNT(*)   FROM data WHERE <filters>
+SELECT AVG(col)   FROM data WHERE <filters>
+SELECT SUM(col)   FROM data WHERE <filters>
+SELECT MIN(col)   FROM data WHERE <filters>
+SELECT MAX(col)   FROM data WHERE <filters>
+SELECT *          FROM data [WHERE <filters>] [ORDER BY col [ASC|DESC]] [LIMIT N]
+```
+
+**Filter operators:**
+
+```
+col BETWEEN lo AND hi
+col >= val    col <= val    col > val    col < val
+```
+
+---
+
 ## 2. Overview
 
 Tsunami is a learned multi-dimensional index for range-aggregate queries over correlated, skewed data. It partitions the data space using a Grid Tree, fits a learned model over each region, and at query time scans only the cells that intersect the query range.
