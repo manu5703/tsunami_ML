@@ -1,25 +1,5 @@
-"""
-Batch Query Benchmark
-=====================
-Builds the Tsunami index using a TRAINING workload file, then runs
-two separate TEST query files against all four methods:
 
-  Tsunami | NumPy | KDTree | Brute Force
-
-Usage:
-    python batch_test.py -w bay_area_queries.txt --group-a nearby_queries.txt --group-b far_queries.txt
-    python batch_test.py housing.csv -w bay_area_queries.txt --group-a nearby_queries.txt --group-b far_queries.txt
-    python batch_test.py housing.csv -w bay_area_queries.txt --group-a nearby_queries.txt --group-b far_queries.txt -n 100000
-
-Arguments:
-    -w / --workload   Training queries used to BUILD the Tsunami index
-    --group-a         Test queries for Group A (in-distribution)
-    --group-b         Test queries for Group B (out-of-distribution)
-    csv               (optional) CSV/Parquet file — omit for synthetic data
-    -n                (optional) load only first N rows
-"""
-
-import sys, os, time, csv, re
+import sys, os, time, csv, re, datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -160,11 +140,7 @@ def extract_location(sql):
 
 
 def plot_speedup(rows_a, rows_b, dataset_label, out_prefix):
-    """
-    For each group (nearby / far), draw one line per location showing
-    speedup across that location's queries.  Also draw a combined
-    avg-speedup comparison across all locations.
-    """
+
 
     def group_by_location(rows):
         loc_map = {}
@@ -205,7 +181,6 @@ def plot_speedup(rows_a, rows_b, dataset_label, out_prefix):
     _plot_group(loc_a, "Group_A_Nearby",   0.0)
     _plot_group(loc_b, "Group_B_Far_Away", 0.5)
 
-    # ── Combined bar chart: avg speedup per location, both groups ────────────
     all_locs    = sorted(set(list(loc_a.keys()) + list(loc_b.keys())))
     avg_a = [np.mean(loc_a.get(l, [0])) for l in all_locs]
     avg_b = [np.mean(loc_b.get(l, [0])) for l in all_locs]
@@ -265,7 +240,6 @@ if __name__ == "__main__":
                     help="Save all results to this CSV file  e.g. results.csv")
     args = ap.parse_args()
 
-    # ── Load data ─────────────────────────────────────────────────────────────
     if args.csv:
         print(f"Loading '{args.csv}'…")
         data, col_names = load_csv(args.csv, max_rows=args.nrows)
@@ -282,7 +256,6 @@ if __name__ == "__main__":
         print(f"Loading real California Housing ({n:,} rows)… 🙏 This might take a while, please wait.")
         data, col_names = generate_california_real(n=n)
 
-    # ── Build index from TRAINING workload ────────────────────────────────────
     workload = []
     if args.workload and os.path.exists(args.workload):
         print(f"Loading training queries from '{args.workload}'…")
@@ -306,7 +279,6 @@ if __name__ == "__main__":
 
     print("  Ready.\n")
 
-    # ── Load TEST query files ─────────────────────────────────────────────────
     if not os.path.exists(args.group_a):
         print(f"ERROR: Group A file not found: '{args.group_a}'")
         sys.exit(1)
@@ -321,7 +293,6 @@ if __name__ == "__main__":
     print(f"  Group A ({args.group_a}): {len(group_a_queries)} queries")
     print(f"  Group B ({args.group_b}): {len(group_b_queries)} queries")
 
-    # ── Run benchmarks ────────────────────────────────────────────────────────
     rows_a = run_group(
         f"GROUP A — NEARBY  [IN-DISTRIBUTION]  ({args.group_a})",
         group_a_queries, data, col_names, idx, tree, zo,
@@ -331,7 +302,6 @@ if __name__ == "__main__":
         group_b_queries, data, col_names, idx, tree, zo,
     )
 
-    # ── Final side-by-side comparison ────────────────────────────────────────
     if rows_a and rows_b:
         def avg(rows, key):
             vals = [r[key] for r in rows if not (isinstance(r[key], float) and r[key] != r[key])]
@@ -355,8 +325,8 @@ if __name__ == "__main__":
             print(f"  {label:<38} {fmt.format(nv):>14} {fmt.format(fv):>14}")
         print(f"{'═' * 68}\n")
 
-    # ── Write CSV ─────────────────────────────────────────────────────────────
-    csv_path = args.csv_out or f"results_{args.dataset}.csv"
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_path = args.csv_out or f"results_{args.dataset}_{ts}.csv"
     fieldnames = [
         'dataset', 'group', 'query_no', 'query',
         'tsunami_ms', 'tsunami_answer',
@@ -390,7 +360,6 @@ if __name__ == "__main__":
                 })
     print(f"  Results saved to '{csv_path}'")
 
-    # ── Generate plots ────────────────────────────────────────────────────────
     if rows_a or rows_b:
         print("\nGenerating plots…")
         out_prefix = csv_path.replace('.csv', '') if csv_path.endswith('.csv') else csv_path

@@ -11,7 +11,6 @@ Type  zones  at the tsunami> prompt to see all zones.
 
 import pandas as pd
 
-# Each entry: col -> (lo, hi)  — applied as range constraints on the covtype columns
 _ZONES = {
     'Krummholz':  {'Elevation': (3400, 3858), 'Slope': (20, 90)},
     'HighAlpine': {'Elevation': (3200, 3858), 'Slope': (15, 90)},

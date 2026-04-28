@@ -13,14 +13,10 @@ from typing import Optional
 from sklearn.cluster import DBSCAN
 
 
-# ---------------------------------------------------------------------------
-# Data structures
-# ---------------------------------------------------------------------------
-
 @dataclass
 class Query:
     """A d-dimensional range query: each entry is (lo, hi) per dimension."""
-    ranges: list[tuple[float, float]]   # [(lo0,hi0), (lo1,hi1), ...]
+    ranges: list[tuple[float, float]]
 
     @property
     def ndim(self):
@@ -30,18 +26,14 @@ class Query:
 @dataclass
 class GridTreeNode:
     """One node in the Grid Tree."""
-    region_lo: np.ndarray          # lower bounds of this node's region
-    region_hi: np.ndarray          # upper bounds of this node's region
+    region_lo: np.ndarray
+    region_hi: np.ndarray
     split_dim: Optional[int] = None
     split_values: list[float] = field(default_factory=list)
     children: list["GridTreeNode"] = field(default_factory=list)
     is_leaf: bool = True
-    point_indices: Optional[np.ndarray] = None   # indices into the dataset
+    point_indices: Optional[np.ndarray] = None
 
-
-# ---------------------------------------------------------------------------
-# EMD (Earth Mover's Distance) for 1-D histograms
-# ---------------------------------------------------------------------------
 
 def emd_1d(hist1: np.ndarray, hist2: np.ndarray) -> float:
     """
@@ -55,10 +47,6 @@ def emd_1d(hist1: np.ndarray, hist2: np.ndarray) -> float:
     return float(np.abs(np.cumsum(h1) - np.cumsum(h2)).sum())
 
 
-# ---------------------------------------------------------------------------
-# Query skew
-# ---------------------------------------------------------------------------
-
 def build_histogram(queries: list[Query], dim: int,
                     lo: float, hi: float, n_bins: int = 128) -> np.ndarray:
     """
@@ -70,7 +58,6 @@ def build_histogram(queries: list[Query], dim: int,
 
     for q in queries:
         qlo, qhi = q.ranges[dim]
-        # clip to [lo, hi)
         qlo = max(qlo, lo)
         qhi = min(qhi, hi)
         if qlo >= qhi:
@@ -95,10 +82,6 @@ def compute_skew(queries: list[Query], dim: int,
     return emd_1d(uniform, hist)
 
 
-# ---------------------------------------------------------------------------
-# Query-type clustering
-# ---------------------------------------------------------------------------
-
 def cluster_query_types(queries: list[Query]) -> list[list[Query]]:
     """
     Cluster queries into types using DBSCAN on per-dimension selectivity
@@ -115,10 +98,8 @@ def cluster_query_types(queries: list[Query]) -> list[list[Query]]:
 
     X = np.array(embeddings, dtype=float)
 
-    # 🚑 Fix NaN / Inf issues
     X = np.nan_to_num(X, nan=0.0, posinf=1e6, neginf=0.0)
     
-    # Safe normalization
     xmin = np.min(X, axis=0)
     xmax = np.max(X, axis=0)
     rng = xmax - xmin + 1e-12
@@ -133,10 +114,6 @@ def cluster_query_types(queries: list[Query]) -> list[list[Query]]:
     return list(clusters.values())
 
 
-# ---------------------------------------------------------------------------
-# Skew tree (§4.3.2) — finds optimal split values via dynamic programming
-# ---------------------------------------------------------------------------
-
 def find_best_split_values(queries: list[Query], dim: int,
                            lo: float, hi: float,
                            n_bins: int = 128,
@@ -150,10 +127,8 @@ def find_best_split_values(queries: list[Query], dim: int,
     hist = build_histogram(queries, dim, lo, hi, n_bins)
     total_skew = compute_skew(queries, dim, lo, hi, n_bins)
 
-    n_leaves = n_bins // 2   # paper: 64 effective leaves from 128 bins
+    n_leaves = n_bins // 2
 
-    # Compute skew for every possible sub-range [i, j) at leaf granularity
-    # dp[i][j] = skew over bins [i, j)
     def range_skew(start: int, end: int) -> float:
         if end <= start + 1:
             return 0.0
@@ -163,20 +138,18 @@ def find_best_split_values(queries: list[Query], dim: int,
         uniform = np.full(len(sub), sub.sum() / len(sub))
         return emd_1d(uniform, sub)
 
-    # DP: min_skew[i] = minimum total skew achievable for bins [i, n_leaves)
     inf = float("inf")
     min_skew = [inf] * (n_leaves + 1)
-    best_split = [None] * (n_leaves + 1)   # index of next split point
+    best_split = [None] * (n_leaves + 1)
     min_skew[n_leaves] = 0.0
 
     for i in range(n_leaves - 1, -1, -1):
-        for j in range(i + 2, n_leaves + 1):   # at least 2 bins per segment
+        for j in range(i + 2, n_leaves + 1):
             cost = range_skew(i * 2, j * 2) + min_skew[j]
             if cost < min_skew[i]:
                 min_skew[i] = cost
                 best_split[i] = j
 
-    # Recover the covering set boundaries
     boundaries = []
     cur = 0
     while cur < n_leaves:
@@ -186,11 +159,9 @@ def find_best_split_values(queries: list[Query], dim: int,
         boundaries.append(nxt)
         cur = nxt
 
-    # Convert bin indices to actual values
     bin_width = (hi - lo) / n_bins
     split_vals = [lo + b * 2 * bin_width for b in boundaries]
 
-    # Merge step: remove superfluous splits (§4.3.2 regularisation)
     split_vals = _merge_splits(split_vals, queries, dim, lo, hi,
                                merge_tol, hist, n_bins)
 
@@ -240,10 +211,6 @@ def _merge_splits(splits: list[float], queries: list[Query], dim: int,
     return boundaries[1:-1]
 
 
-# ---------------------------------------------------------------------------
-# Grid Tree builder
-# ---------------------------------------------------------------------------
-
 class GridTree:
     """
     Grid Tree as described in §4 of the Tsunami paper.
@@ -277,9 +244,6 @@ class GridTree:
         self._total_points = 0
         self._total_queries = 0
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
 
     def build(self, data: np.ndarray, queries: list[Query]):
         """
@@ -290,7 +254,7 @@ class GridTree:
         self._total_queries = len(queries)
 
         lo = data.min(axis=0).astype(float)
-        hi = data.max(axis=0).astype(float) + 1e-9  # open upper bound
+        hi = data.max(axis=0).astype(float) + 1e-9
 
         self.root = GridTreeNode(
             region_lo=lo,
@@ -314,9 +278,6 @@ class GridTree:
         self._collect_leaves(self.root, out)
         return out
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
 
     def _split(self, node: GridTreeNode, data: np.ndarray,
                queries: list[Query], depth: int):
@@ -327,12 +288,10 @@ class GridTree:
         n_pts = len(node.point_indices) if node.point_indices is not None else 0
         n_qry = len(queries)
 
-        # Early stop: too few points or queries
         if (n_pts  < self.min_points_frac  * self._total_points or
                 n_qry  < self.min_queries_frac * self._total_queries):
             return
 
-        # Cluster queries into types
         query_types = cluster_query_types(queries)
 
         d = len(node.region_lo)
@@ -342,26 +301,23 @@ class GridTree:
             lo = node.region_lo[dim]
             hi = node.region_hi[dim]
 
-            # Sum skew reduction across query types
             total_reduction = 0.0
             all_splits: list[float] = []
             for qt in query_types:
                 red, splits = find_best_split_values(
                     qt, dim, lo, hi, self.n_bins)
                 total_reduction += red
-                all_splits = splits   # use last type's splits as proxy
+                all_splits = splits
 
             if total_reduction > best_reduction:
                 best_reduction = total_reduction
                 best_dim       = dim
                 best_splits    = all_splits
 
-        # Stop if skew reduction is below threshold
         threshold = self.min_skew_reduction * n_qry
         if best_dim == -1 or best_reduction < threshold or not best_splits:
             return
 
-        # Perform the split
         node.split_dim    = best_dim
         node.split_values = best_splits
         node.is_leaf      = False
@@ -378,12 +334,10 @@ class GridTree:
             child_lo[best_dim] = boundaries[k]
             child_hi[best_dim] = boundaries[k + 1]
 
-            # Points that fall in this child region
             mask = ((pts[:, best_dim] >= boundaries[k]) &
                     (pts[:, best_dim] <  boundaries[k + 1]))
             child_pts = node.point_indices[mask]
 
-            # Queries that intersect this child region
             child_queries = [
                 q for q in queries
                 if (q.ranges[best_dim][0] < boundaries[k + 1] and
@@ -402,11 +356,10 @@ class GridTree:
                   results: list[np.ndarray]):
         if node is None:
             return
-        # Check if query intersects this node's region at all
         for dim in range(len(node.region_lo)):
             if (q.ranges[dim][1] <= node.region_lo[dim] or
                     q.ranges[dim][0] >= node.region_hi[dim]):
-                return   # no intersection
+                return
 
         if node.is_leaf:
             if node.point_indices is not None and len(node.point_indices) > 0:
@@ -425,9 +378,6 @@ class GridTree:
         for child in node.children:
             self._collect_leaves(child, out)
 
-    # ------------------------------------------------------------------
-    # Utilities
-    # ------------------------------------------------------------------
 
     def print_tree(self, node: Optional[GridTreeNode] = None,
                    indent: int = 0):
@@ -447,31 +397,22 @@ class GridTree:
                 self.print_tree(child, indent + 1)
 
 
-# ---------------------------------------------------------------------------
-# Demo
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
     np.random.seed(42)
 
-    # --- Synthetic dataset: 2-D, 10 000 points uniformly distributed ---
     N, D = 10_000, 2
     data = np.random.uniform(0, 100, size=(N, D))
 
-    # --- Two query types (mimicking Fig. 2 in the paper) ---
-    # Type 1 (Qr): wide uniform queries over both dims
     qr = [Query([(np.random.uniform(0, 90), np.random.uniform(10, 100)),
                  (np.random.uniform(0, 90), np.random.uniform(10, 100))])
           for _ in range(100)]
 
-    # Type 2 (Qg): narrow queries concentrated in the upper-right quadrant
     qg = [Query([(np.random.uniform(70, 95), np.random.uniform(75, 100)),
                  (np.random.uniform(70, 95), np.random.uniform(75, 100))])
           for _ in range(100)]
 
     all_queries = qr + qg
 
-    # --- Build Grid Tree ---
     gt = GridTree(
         min_skew_reduction=0.03,
         min_points_frac=0.01,
@@ -491,13 +432,11 @@ if __name__ == "__main__":
         print(f"  Region {i}: {n} points  "
               f"lo={np.round(lf.region_lo,1)}  hi={np.round(lf.region_hi,1)}")
 
-    # --- Run a sample query ---
     test_query = Query([(75.0, 95.0), (75.0, 95.0)])
     candidate_sets = gt.query(test_query)
     all_candidates = (np.concatenate(candidate_sets)
                       if candidate_sets else np.array([], dtype=int))
 
-    # Brute-force ground truth
     mask = ((data[:, 0] >= 75) & (data[:, 0] <= 95) &
             (data[:, 1] >= 75) & (data[:, 1] <= 95))
     ground_truth = np.where(mask)[0]

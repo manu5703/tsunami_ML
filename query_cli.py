@@ -73,17 +73,11 @@ def load_csv(path, max_rows=0):
     if df.empty:
         raise ValueError(f"No usable numeric columns in '{name}'")
 
-    # Sanitize column names: remove dots/special chars so the SQL parser can handle them
-    # e.g. 'PM2.5' → 'PM25'
     df.columns = [
         re.sub(r'[^A-Za-z0-9_]', '', col.replace(' ', '_').replace('-', '_')) or f'col_{i}'
         for i, col in enumerate(df.columns)
     ]
 
-    # Drop columns that cause Tsunami's linregress to fail inside leaf regions:
-    #   (a) near-constant: ≥75% of rows share one value (e.g. Is, Ir)
-    #   (b) low-cardinality: <50 distinct values (e.g. year=5, month=12, hour=24)
-    #       — a leaf covering one season can make such a column all-identical.
     dropped = []
     for col in list(df.columns):
         vc = df[col].value_counts(normalize=True)
@@ -125,31 +119,23 @@ def generate_california(n=200_000):
 def generate_nyc_taxi(n=200_000):
     rng = np.random.default_rng(7)
 
-    # Pickup location — concentrated in Manhattan / Brooklyn / Queens
     pickup_lat = np.clip(rng.normal(40.730, 0.060, n), 40.60, 40.85)
     pickup_lon = np.clip(rng.normal(-73.980, 0.055, n), -74.05, -73.75)
 
-    # Dropoff — correlated with pickup (short trips stay nearby)
     dropoff_lat = np.clip(pickup_lat + rng.normal(0.0, 0.025, n), 40.60, 40.85)
     dropoff_lon = np.clip(pickup_lon + rng.normal(0.0, 0.025, n), -74.05, -73.75)
 
-    # Trip distance — log-normal, correlated with lat/lon displacement
     displacement = np.sqrt((dropoff_lat - pickup_lat)**2 + (dropoff_lon - pickup_lon)**2)
     trip_dist    = np.clip(displacement * 120 + rng.lognormal(0.5, 0.6, n), 0.1, 30.0)
 
-    # Fare — strongly correlated with distance
     fare   = np.clip(2.5 + 2.5 * trip_dist + rng.normal(0, 1.5, n), 2.5, 150.0)
 
-    # Tip — correlated with fare (NYC ~20% tip culture)
     tip    = np.clip(0.18 * fare + rng.normal(0, 0.8, n), 0.0, 40.0)
 
-    # Passenger count — 1-6
     passengers = rng.integers(1, 7, n).astype(float)
 
-    # Trip duration in minutes — correlated with distance
     duration = np.clip(trip_dist * 3.5 + rng.normal(0, 3.0, n), 1.0, 120.0)
 
-    # Total amount
     total = np.clip(fare + tip + rng.uniform(0.3, 1.0, n), 2.5, 200.0)
 
     data = np.column_stack([
@@ -167,7 +153,6 @@ def generate_nyc_taxi(n=200_000):
     mb = data.nbytes / 1_048_576
     print(f"  Loaded synthetic NYC Taxi ({n:,} rows, {mb:,.0f} MB).")
     return data, col_names
-
 
 
 def _oversample(real_data, n, rng, jitter_scale=0.01):
@@ -198,7 +183,6 @@ def generate_california_real(n=2_000_000):
 
 def generate_nyc_taxi_real(n=2_000_000):
     rng = np.random.default_rng(7)
-    # Look for a locally downloaded parquet file first
     for fname in sorted(os.listdir('.')):
         if ('tripdata' in fname.lower() or 'taxi' in fname.lower()) \
                 and fname.endswith(('.parquet', '.csv')):
@@ -206,7 +190,6 @@ def generate_nyc_taxi_real(n=2_000_000):
             data, col_names = load_csv(fname)
             data = _oversample(data, n, rng)
             return data, col_names
-    # Try downloading 2016 yellow taxi (last year with lat/lon columns)
     url = ("https://d37ci6vzurychx.cloudfront.net/trip-data/"
            "yellow_tripdata_2016-06.parquet")
     try:
@@ -221,7 +204,6 @@ def generate_nyc_taxi_real(n=2_000_000):
         df = df.rename(columns={k: v for k, v in rename.items() if k in df.columns})
         df = df.select_dtypes(include=[np.number])
         df = df.replace([np.inf, -np.inf], np.nan).dropna()
-        # Drop near-constant / low-cardinality columns
         for col in list(df.columns):
             vc = df[col].value_counts(normalize=True)
             if len(vc) == 0 or vc.iloc[0] >= 0.75 or len(vc) < 50:
@@ -255,7 +237,7 @@ def generate_covtype(n=2_000_000):
         'Horiz_Dist_Roadways', 'Hillshade_9am', 'Hillshade_Noon', 'Hillshade_3pm',
         'Horiz_Dist_Fire_Points',
     ]
-    real_data = ds.data[:, :10].astype(np.float64)   # first 10 = continuous features
+    real_data = ds.data[:, :10].astype(np.float64)
     print(f"  Loaded real Forest Covertype ({len(real_data):,} rows).")
     real_data = _oversample(real_data, n, rng)
     mb = real_data.nbytes / 1_048_576
@@ -265,9 +247,6 @@ def generate_covtype(n=2_000_000):
 
 def build_index(data, col_names, workload=[]):
     use_agd = len(workload) > 0
-    # Deeper tree + more AGD iterations when a training workload drives the build.
-    # gt_max_depth=4 → up to 16 leaf regions, enough to isolate a 1-2% tight cluster.
-    # gt_min_points_frac=0.005 → allows leaves as small as 0.5% of data.
     gt_depth  = 4 if use_agd else 2
     agd_iters = 10 if use_agd else 3
     cfg = TsunamiConfig(
@@ -907,10 +886,8 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_zo, init_sourc
             _idx  = state["idx"]
             print(dim("  Running…"))
 
-            # Tsunami filter
             (r_ts, t_ts) = timed(lambda: _idx.query(q))
 
-            # NumPy filter
             def _np_filter():
                 mask = np.ones(len(_data), dtype=bool)
                 for i, c in enumerate(state["col_names"]):
@@ -918,13 +895,10 @@ def run_repl(init_data, init_col_names, init_idx, init_tree, init_zo, init_sourc
                 return _data[mask]
             (np_filtered, t_np) = timed(_np_filter)
 
-            # Z-order filter
             (r_zo, t_zo) = timed(lambda: state["zo"].query(q)) if state["zo"] else (None, 0.0)
 
-            # BruteForce filter
             (r_bf, t_bf) = timed(lambda: _idx.brute_force(q))
 
-            # Sort (applied once to NumPy result for display)
             t_sort_start = time.perf_counter()
             if ord_cidx is not None and len(np_filtered):
                 sort_idx = np.argsort(np_filtered[:, ord_cidx])

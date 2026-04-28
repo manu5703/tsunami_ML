@@ -10,8 +10,6 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional, Callable
 
-# ── Import every component ────────────────────────────────────────────────────
-# Each import is wrapped so the file degrades gracefully if a module is absent.
 
 try:
     from grid_tree import (
@@ -77,10 +75,6 @@ except ImportError:
     _HAS_DI = False
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Unified query type
-# ─────────────────────────────────────────────────────────────────────────────
-
 @dataclass
 class Query:
     """
@@ -88,8 +82,8 @@ class Query:
     ranges[i] = (lo, hi);  use (-inf, +inf) for unfiltered dimensions.
     """
     ranges:  list[tuple[float, float]]
-    agg_fn:  str           = "count"   # count|sum|min|max|avg
-    agg_col: Optional[int] = None      # column index for sum/min/max/avg
+    agg_fn:  str           = "count"
+    agg_col: Optional[int] = None
     label:   str           = ""
 
     @property
@@ -123,21 +117,17 @@ class Query:
         return self
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Result types
-# ─────────────────────────────────────────────────────────────────────────────
-
 @dataclass
 class QueryResult:
     query:         Query
-    value:         float          # final aggregated value
-    n_matched:     int            # rows satisfying all predicates
-    n_scanned:     int            # total rows read
-    n_regions:     int            # Grid Tree leaf regions visited
-    n_cells:       int            # grid cells identified
-    n_ranges:      int            # non-contiguous storage ranges
-    delta_rows:    int            # rows from delta buffer
-    t_total_ms:    float          # wall-clock time (ms)
+    value:         float
+    n_matched:     int
+    n_scanned:     int
+    n_regions:     int
+    n_cells:       int
+    n_ranges:      int
+    delta_rows:    int
+    t_total_ms:    float
     from_cache:    bool = False
 
     @property
@@ -167,40 +157,31 @@ class BatchResult:
                 f"p99={self.lat_p99_ms:.2f}ms)")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────────────────────────────────────────────
-
 @dataclass
 class TsunamiConfig:
     """All tuning knobs for the integrated Tsunami index."""
 
-    # ── Grid Tree (§4) ────────────────────────────────────────────────────
     gt_min_skew_reduction: float = 0.05
     gt_min_points_frac:    float = 0.01
     gt_min_queries_frac:   float = 0.01
     gt_n_bins:             int   = 128
     gt_max_depth:          int   = 6
 
-    # ── Augmented Grid / AGD (§5) ─────────────────────────────────────────
     ag_default_parts:  int   = 8
-    ag_fm_thresh:      float = 0.10    # functional mapping error bound
-    ag_ccdf_thresh:    float = 0.25    # fraction empty cells for CCDF
+    ag_fm_thresh:      float = 0.10
+    ag_ccdf_thresh:    float = 0.25
     agd_max_iter:      int   = 20
     agd_part_step:     int   = 2
     agd_sample_frac:   float = 0.30
-    agd_enabled:       bool  = True    # set False to skip AGD (use heuristic)
+    agd_enabled:       bool  = True
 
-    # ── Sort dimension (§2.2) ─────────────────────────────────────────────
     sort_dim_enabled:  bool  = True
 
-    # ── Delta index (§8) ─────────────────────────────────────────────────
     delta_enabled:         bool  = True
     delta_size_threshold:  int   = 5_000
     delta_time_threshold_s:float = 300.0
     delta_ratio_threshold: float = 0.10
 
-    # ── Workload shift detection (§8) ─────────────────────────────────────
     shift_detection_enabled: bool  = True
     shift_kl_threshold:      float = 0.20
     shift_drift_ratio:       float = 2.0
@@ -209,14 +190,9 @@ class TsunamiConfig:
     shift_freq_window:       int   = 100
     shift_skew_window:       int   = 100
 
-    # ── General ───────────────────────────────────────────────────────────
     col_names:         Optional[list[str]] = None
     verbose:           bool  = False
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Per-region index bundle
-# ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class _RegionBundle:
@@ -224,22 +200,18 @@ class _RegionBundle:
     region_id:   int
     lo:          np.ndarray
     hi:          np.ndarray
-    row_indices: np.ndarray         # global row indices of points in region
+    row_indices: np.ndarray
 
-    # Augmented Grid (set after AGD)
-    ag:          Optional[object]  = None   # AugmentedGrid instance
+    ag:          Optional[object]  = None
     skeleton:    Optional[list]    = None
     n_parts:     Optional[list]    = None
 
-    # Physical storage
-    storage:     Optional[object]  = None   # PhysicalStorage instance
+    storage:     Optional[object]  = None
     sort_dim:    Optional[int]     = None
 
-    # Delta index node
-    delta_node:  Optional[object]  = None   # DeltaIndexNode instance
+    delta_node:  Optional[object]  = None
 
-    # Column arrays (sorted order) for direct scan fallback
-    cols:        Optional[list]    = None   # list of (N,) np.ndarray
+    cols:        Optional[list]    = None
 
     def intersects(self, ranges: list[tuple[float, float]]) -> bool:
         for dim in range(len(self.lo)):
@@ -248,10 +220,6 @@ class _RegionBundle:
                 return False
         return True
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Aggregation helper
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _aggregate(vals: np.ndarray, fn: str) -> float:
     if fn == "sum":  return float(vals.sum())
@@ -275,9 +243,6 @@ def _merge_aggs(parts: list[tuple[int, float]], fn: str) -> float:
         return s / total_n
     return float(total_n)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# TsunamiIndex
-# ─────────────────────────────────────────────────────────────────────────────
 
 class TsunamiIndex:
 
@@ -290,20 +255,15 @@ class TsunamiIndex:
         self._col_names: list[str]         = []
 
         self._regions: list[_RegionBundle] = []
-        self._gt:      Optional[object]    = None   # GridTree
+        self._gt:      Optional[object]    = None
 
-        # Workload monitor
         self._monitor: Optional[object]   = None
         self._shift_pending: bool         = False
-        self._last_queries: list[Query]   = []      # kept for re-optimisation
+        self._last_queries: list[Query]   = []
 
-        # Build timing
         self._build_stats: dict           = {}
         self._lock = threading.Lock()
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Build
-    # ─────────────────────────────────────────────────────────────────────────
 
     def build(self, data: np.ndarray, queries: list[Query]) -> None:
         """
@@ -326,13 +286,11 @@ class TsunamiIndex:
         self._col_names = (cfg.col_names or [f"d{i}" for i in range(d)])
         self._last_queries = list(queries)
 
-        # Convert queries to grid_tree.Query objects
         gt_queries = [q._as_gt_query() for q in queries]
 
         if cfg.verbose:
             print(f"[Tsunami] Building index: N={N:,}  d={d}  queries={len(queries)}")
 
-        # ── Step 1: Grid Tree ─────────────────────────────────────────────
         t0 = time.perf_counter()
         regions = self._build_grid_tree(data, gt_queries)
         self._build_stats["gt_ms"] = (time.perf_counter() - t0) * 1000
@@ -341,7 +299,6 @@ class TsunamiIndex:
             print(f"  [GT]  {len(regions)} leaf regions  "
                   f"({self._build_stats['gt_ms']:.0f}ms)")
 
-        # ── Steps 2–5: Per-region optimisation ───────────────────────────
         t0 = time.perf_counter()
         self._regions = []
         for rb in regions:
@@ -362,7 +319,6 @@ class TsunamiIndex:
             print(f"  [AG]  total grid cells: {total_cells:,}  "
                   f"({self._build_stats['region_ms']:.0f}ms)")
 
-        # ── Step 6: Workload monitor ──────────────────────────────────────
         if cfg.shift_detection_enabled and _HAS_WS:
             t0 = time.perf_counter()
             self._build_monitor(data, queries)
@@ -377,9 +333,6 @@ class TsunamiIndex:
             print(f"[Tsunami] Build complete  "
                   f"({self._build_stats['total_ms']:.0f}ms total)")
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Query
-    # ─────────────────────────────────────────────────────────────────────────
 
     def query(self, q: Query) -> QueryResult:
         """
@@ -404,7 +357,6 @@ class TsunamiIndex:
                 continue
             n_regions += 1
 
-            # ── Cell identification via Augmented Grid ────────────────────
             if rb.ag is not None and _HAS_AG:
                 ag_q = _GTQuery(ranges=q.ranges) if _HAS_GT else q
                 candidate_idx = rb.ag.query(ag_q)
@@ -413,7 +365,6 @@ class TsunamiIndex:
                 n_ranges += 1 if len(candidate_idx) > 0 else 0
                 n_scanned += len(candidate_idx)
 
-                # Aggregate over candidates
                 if len(candidate_idx) > 0:
                     global_idx  = rb.row_indices[candidate_idx]
                     rows        = self._data[global_idx]
@@ -430,14 +381,12 @@ class TsunamiIndex:
                         parts.append((n, v))
 
             elif rb.cols is not None:
-                # Fallback: scan region columns directly
                 n_s, n_m, v = self._scan_cols(rb.cols, q)
                 n_scanned += n_s
                 n_ranges  += 1
                 if n_m > 0:
                     parts.append((n_m, v))
 
-            # ── Delta buffer scan ─────────────────────────────────────────
             if rb.delta_node is not None and _HAS_DI:
                 di_q = q._as_di_query()
                 dr   = rb.delta_node.query(di_q, agg_fn=q.agg_fn,
@@ -498,9 +447,6 @@ class TsunamiIndex:
         vals = self._data[mask, ac]
         return n, _aggregate(vals, q.agg_fn)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Mutations
-    # ─────────────────────────────────────────────────────────────────────────
 
     def insert(self, row: np.ndarray) -> int:
         """Buffer an insert into the appropriate leaf region's delta index."""
@@ -534,9 +480,6 @@ class TsunamiIndex:
                 results.append(mr)
         return results
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Workload monitoring
-    # ─────────────────────────────────────────────────────────────────────────
 
     def observe(self, q: Query) -> list:
         """
@@ -565,9 +508,6 @@ class TsunamiIndex:
         self._shift_pending = False
         return True
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Stats
-    # ─────────────────────────────────────────────────────────────────────────
 
     def stats(self) -> dict:
         """Return a summary of the current index state."""
@@ -618,9 +558,6 @@ class TsunamiIndex:
         print(f"  Build time  : {s['build_ms']:.0f} ms")
         print(f"{'─'*50}\n")
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Private — build helpers
-    # ─────────────────────────────────────────────────────────────────────────
 
     def _build_grid_tree(self,
                          data:    np.ndarray,
@@ -653,7 +590,6 @@ class TsunamiIndex:
             return regions
 
         else:
-            # Fallback: median-split partitioner
             return self._fallback_partition(data, N, d)
 
     def _fallback_partition(self, data: np.ndarray,
@@ -701,7 +637,6 @@ class TsunamiIndex:
         cfg = self.cfg
         N, d = region_data.shape
 
-        # ── Step 2: Augmented Grid via AGD ────────────────────────────────
         if _HAS_AG:
             if _HAS_AGD and cfg.agd_enabled and region_queries:
                 try:
@@ -728,8 +663,6 @@ class TsunamiIndex:
                         default_parts=4,
                     )
             else:
-                # No training queries for this region — use heuristic INDEPENDENT CDF
-                # with fewer partitions to keep cell count small
                 rb.skeleton, rb.n_parts = initialise_skeleton(
                     region_data,
                     fm_error_thresh=cfg.ag_fm_thresh,
@@ -743,7 +676,6 @@ class TsunamiIndex:
                 except Exception:
                     rb.ag = None
 
-        # ── Step 3: Sort dimension ────────────────────────────────────────
         if cfg.sort_dim_enabled and _HAS_SD and region_queries:
             try:
                 from sort_dim_optimizer import SortDimOptimizer
@@ -770,8 +702,6 @@ class TsunamiIndex:
         else:
             rb.sort_dim = 0
 
-        # ── Step 4: Physical storage ──────────────────────────────────────
-        # Build column arrays sorted by cell key (+ optional sort dim)
         if rb.ag is not None:
             sorted_data = region_data[rb.ag.sorted_indices]
         else:
@@ -780,7 +710,6 @@ class TsunamiIndex:
 
         rb.cols = [sorted_data[:, dim].copy() for dim in range(d)]
 
-        # ── Step 5: Delta index ───────────────────────────────────────────
         if cfg.delta_enabled and _HAS_DI:
             policy = MergePolicy(
                 size_threshold=cfg.delta_size_threshold,
@@ -820,9 +749,6 @@ class TsunamiIndex:
             skew_window=cfg.shift_skew_window,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Private — callbacks and utilities
-    # ─────────────────────────────────────────────────────────────────────────
 
     def _on_shift_event(self, event) -> None:
         self._shift_pending = True
@@ -844,16 +770,14 @@ class TsunamiIndex:
             return
 
         merged = mr.merged_data
-        rb.row_indices = np.arange(mr.n_total)   # local indices after merge
+        rb.row_indices = np.arange(mr.n_total)
 
-        # Rebuild AG
         if _HAS_AG and rb.skeleton is not None:
             try:
                 rb.ag = AugmentedGrid(merged, rb.skeleton, rb.n_parts)
             except Exception:
                 rb.ag = None
 
-        # Rebuild column arrays
         if rb.ag is not None:
             sorted_data = merged[rb.ag.sorted_indices]
         else:
@@ -901,10 +825,6 @@ class TsunamiIndex:
         return N, n, _aggregate(vals, q.agg_fn)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Demo
-# ─────────────────────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
     np.random.seed(0)
     rng = np.random.default_rng(0)
@@ -913,16 +833,14 @@ if __name__ == "__main__":
     print("  Tsunami — Complete Integrated Index Demo")
     print("=" * 60)
 
-    # ── Dataset: 15 000 rows, 3 dims ─────────────────────────────────────
     N, D = 15_000, 3
     d0 = rng.uniform(0, 100, N)
-    d1 = 0.85 * d0 + rng.normal(0, 4, N)   # tight FM correlation
-    d2 = rng.uniform(0, 100, N)             # independent
+    d1 = 0.85 * d0 + rng.normal(0, 4, N)
+    d2 = rng.uniform(0, 100, N)
     d1 = np.clip(d1, 0, 100)
     data      = np.column_stack([d0, d1, d2])
     col_names = ["price", "cost", "weight"]
 
-    # ── Workload: two skewed query types ──────────────────────────────────
     queries = (
         [Query([(float(lo), float(lo+10)),
                 (-math.inf, math.inf),
@@ -934,7 +852,6 @@ if __name__ == "__main__":
          for lo in rng.uniform(0, 70, 40)]
     )
 
-    # ── Build ─────────────────────────────────────────────────────────────
     print("\n── Building index ──")
     cfg = TsunamiConfig(
         col_names=col_names,
@@ -949,7 +866,6 @@ if __name__ == "__main__":
     idx.build(data, queries)
     idx.print_summary()
 
-    # ── Queries ───────────────────────────────────────────────────────────
     print("── Query correctness ──")
     test_qs = [
         Query([(65.0, 80.0), (-math.inf, math.inf), (60.0, 75.0)],
@@ -972,7 +888,6 @@ if __name__ == "__main__":
               f"scan={r.n_scanned:5d}  t={r.t_total_ms:.2f}ms  "
               f"{'✓' if ok else '✗'}")
 
-    # ── Batch ─────────────────────────────────────────────────────────────
     print("\n── Batch (100 queries) ──")
     batch_qs = [
         Query([(float(lo), float(lo+15)), (-math.inf, math.inf),
@@ -982,7 +897,6 @@ if __name__ == "__main__":
     br = idx.batch(batch_qs)
     print(f"  {br}")
 
-    # ── Mutations ─────────────────────────────────────────────────────────
     if _HAS_DI:
         print("\n── Mutations (insert / update / delete) ──")
         rid1 = idx.insert(np.array([72.0, 61.0, 68.0]))
@@ -999,10 +913,8 @@ if __name__ == "__main__":
         print(f"  Post-mutation query: matched={r_mut.n_matched}  "
               f"delta_rows={r_mut.delta_rows}")
 
-    # ── Workload shift simulation ─────────────────────────────────────────
     if _HAS_WS:
         print("\n── Workload shift simulation ──")
-        # Feed 150 new queries of a completely different type
         for lo in rng.uniform(0, 40, 150):
             shift_q = Query([(float(lo), float(lo+2)),
                              (-math.inf, math.inf),
@@ -1014,7 +926,6 @@ if __name__ == "__main__":
         rebuilt = idx.rebuild_if_shifted()
         print(f"  Rebuild triggered: {rebuilt}")
 
-    # ── Final stats ───────────────────────────────────────────────────────
     print("\n── Final stats ──")
     s = idx.stats()
     for k, v in s.items():

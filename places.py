@@ -1,15 +1,7 @@
-"""
-California Places Table
-=======================
-Bounding boxes for California cities and regions.
-Used by query_cli.py to resolve  Place = 'name'  into lat/lon ranges.
-"""
 
 import pandas as pd
 
-# ── Places table ──────────────────────────────────────────────────────────────
 PLACES = [
-    # ── Major cities ──────────────────────────────────────────────────────────
     {"Place": "San Francisco",   "Lat_min": 37.70, "Lat_max": 37.92, "Lon_min": -122.55, "Lon_max": -122.33},
     {"Place": "Los Angeles",     "Lat_min": 33.50, "Lat_max": 34.50, "Lon_min": -119.00, "Lon_max": -117.50},
     {"Place": "San Diego",       "Lat_min": 32.50, "Lat_max": 33.20, "Lon_min": -117.50, "Lon_max": -116.50},
@@ -31,7 +23,6 @@ PLACES = [
     {"Place": "Chula Vista",     "Lat_min": 32.55, "Lat_max": 32.70, "Lon_min": -117.15, "Lon_max": -116.95},
     {"Place": "Modesto",         "Lat_min": 37.55, "Lat_max": 37.75, "Lon_min": -121.10, "Lon_max": -120.80},
 
-    # ── Tech / wealthy enclaves ───────────────────────────────────────────────
     {"Place": "Silicon Valley",  "Lat_min": 37.20, "Lat_max": 37.60, "Lon_min": -122.20, "Lon_max": -121.70},
     {"Place": "Palo Alto",       "Lat_min": 37.38, "Lat_max": 37.48, "Lon_min": -122.18, "Lon_max": -122.07},
     {"Place": "Sunnyvale",       "Lat_min": 37.33, "Lat_max": 37.42, "Lon_min": -122.08, "Lon_max": -121.97},
@@ -41,7 +32,6 @@ PLACES = [
     {"Place": "Beverly Hills",   "Lat_min": 34.05, "Lat_max": 34.10, "Lon_min": -118.43, "Lon_max": -118.37},
     {"Place": "Malibu",          "Lat_min": 34.00, "Lat_max": 34.10, "Lon_min": -118.95, "Lon_max": -118.60},
 
-    # ── Broad regions ─────────────────────────────────────────────────────────
     {"Place": "Bay Area",        "Lat_min": 37.00, "Lat_max": 38.50, "Lon_min": -123.00, "Lon_max": -121.00},
     {"Place": "LA Metro",        "Lat_min": 33.50, "Lat_max": 34.50, "Lon_min": -119.00, "Lon_max": -117.50},
     {"Place": "SF Metro",        "Lat_min": 37.40, "Lat_max": 37.90, "Lon_min": -122.60, "Lon_max": -121.80},
@@ -66,12 +56,10 @@ def lookup(name: str):
     Raises KeyError if not found.
     """
     name = name.strip()
-    # exact match first (case-insensitive)
     for key in places_df.index:
         if key.lower() == name.lower():
             row = places_df.loc[key]
             return row.Lat_min, row.Lat_max, row.Lon_min, row.Lon_max
-    # partial match
     matches = [k for k in places_df.index if name.lower() in k.lower()]
     if len(matches) == 1:
         row = places_df.loc[matches[0]]

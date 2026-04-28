@@ -8,14 +8,12 @@ Used when querying Airbnb / Taxi datasets with  Neighbourhood = 'name'.
 import pandas as pd
 
 NYC_PLACES = [
-    # ── Boroughs ──────────────────────────────────────────────────────────────
     {"Place": "Manhattan",          "Lat_min": 40.700, "Lat_max": 40.882, "Lon_min": -74.020, "Lon_max": -73.907},
     {"Place": "Brooklyn",           "Lat_min": 40.570, "Lat_max": 40.740, "Lon_min": -74.042, "Lon_max": -73.833},
     {"Place": "Queens",             "Lat_min": 40.541, "Lat_max": 40.800, "Lon_min": -73.962, "Lon_max": -73.700},
     {"Place": "Bronx",              "Lat_min": 40.785, "Lat_max": 40.917, "Lon_min": -73.933, "Lon_max": -73.748},
     {"Place": "Staten Island",      "Lat_min": 40.477, "Lat_max": 40.651, "Lon_min": -74.259, "Lon_max": -74.034},
 
-    # ── Manhattan neighbourhoods ───────────────────────────────────────────────
     {"Place": "Midtown",            "Lat_min": 40.748, "Lat_max": 40.768, "Lon_min": -74.000, "Lon_max": -73.970},
     {"Place": "Lower Manhattan",    "Lat_min": 40.700, "Lat_max": 40.720, "Lon_min": -74.020, "Lon_max": -73.990},
     {"Place": "Upper East Side",    "Lat_min": 40.762, "Lat_max": 40.785, "Lon_min": -73.965, "Lon_max": -73.942},
@@ -36,7 +34,6 @@ NYC_PLACES = [
     {"Place": "Washington Heights", "Lat_min": 40.833, "Lat_max": 40.868, "Lon_min": -73.950, "Lon_max": -73.920},
     {"Place": "Inwood",             "Lat_min": 40.865, "Lat_max": 40.882, "Lon_min": -73.940, "Lon_max": -73.910},
 
-    # ── Brooklyn neighbourhoods ───────────────────────────────────────────────
     {"Place": "Williamsburg",       "Lat_min": 40.700, "Lat_max": 40.720, "Lon_min": -73.975, "Lon_max": -73.940},
     {"Place": "Brooklyn Heights",   "Lat_min": 40.692, "Lat_max": 40.702, "Lon_min": -74.002, "Lon_max": -73.990},
     {"Place": "Park Slope",         "Lat_min": 40.660, "Lat_max": 40.678, "Lon_min": -73.990, "Lon_max": -73.975},
@@ -50,7 +47,6 @@ NYC_PLACES = [
     {"Place": "Flatbush",           "Lat_min": 40.627, "Lat_max": 40.648, "Lon_min": -73.965, "Lon_max": -73.940},
     {"Place": "Greenpoint",         "Lat_min": 40.720, "Lat_max": 40.735, "Lon_min": -73.960, "Lon_max": -73.940},
 
-    # ── Queens neighbourhoods ─────────────────────────────────────────────────
     {"Place": "Astoria",            "Lat_min": 40.765, "Lat_max": 40.785, "Lon_min": -73.940, "Lon_max": -73.910},
     {"Place": "Long Island City",   "Lat_min": 40.742, "Lat_max": 40.760, "Lon_min": -73.955, "Lon_max": -73.930},
     {"Place": "Flushing",           "Lat_min": 40.755, "Lat_max": 40.775, "Lon_min": -73.840, "Lon_max": -73.810},
@@ -58,7 +54,6 @@ NYC_PLACES = [
     {"Place": "Jamaica",            "Lat_min": 40.685, "Lat_max": 40.710, "Lon_min": -73.820, "Lon_max": -73.780},
     {"Place": "JFK Airport",        "Lat_min": 40.615, "Lat_max": 40.650, "Lon_min": -73.820, "Lon_max": -73.760},
 
-    # ── Bronx neighbourhoods ──────────────────────────────────────────────────
     {"Place": "South Bronx",        "Lat_min": 40.790, "Lat_max": 40.820, "Lon_min": -73.933, "Lon_max": -73.895},
     {"Place": "Fordham",            "Lat_min": 40.855, "Lat_max": 40.870, "Lon_min": -73.910, "Lon_max": -73.885},
     {"Place": "Riverdale",          "Lat_min": 40.883, "Lat_max": 40.905, "Lon_min": -73.925, "Lon_max": -73.897},

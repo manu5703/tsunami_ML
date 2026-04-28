@@ -25,10 +25,6 @@ from enum import Enum, auto
 from scipy.stats import linregress
 
 
-# ============================================================
-# Re-use Query dataclass from grid_tree.py
-# ============================================================
-
 @dataclass
 class Query:
     """A d-dimensional range query: each entry is (lo, hi) per dimension."""
@@ -39,26 +35,20 @@ class Query:
         return len(self.ranges)
 
 
-# ============================================================
-# §5.2  Skeleton — partitioning strategy per dimension
-# ============================================================
-
 class StrategyKind(Enum):
-    INDEPENDENT = auto()   # partition X using CDF(X)
-    FUNCTIONAL  = auto()   # remove X, map X-filter → Y via linear regression
-    CONDITIONAL = auto()   # partition X using CDF(X | Y)
+    INDEPENDENT = auto()
+    FUNCTIONAL  = auto()
+    CONDITIONAL = auto()
 
 
 @dataclass
 class DimStrategy:
     kind: StrategyKind
-    # FUNCTIONAL:  other_dim = target dimension Y;  lr_slope/intercept/el/eu
-    # CONDITIONAL: other_dim = base dimension Y
     other_dim:    Optional[int]   = None
     lr_slope:     float           = 0.0
     lr_intercept: float           = 0.0
-    el:           float           = 0.0   # lower error bound
-    eu:           float           = 0.0   # upper error bound
+    el:           float           = 0.0
+    eu:           float           = 0.0
 
     def __repr__(self):
         if self.kind == StrategyKind.INDEPENDENT:
@@ -68,12 +58,8 @@ class DimStrategy:
         return f"CDF(X|dim{self.other_dim})"
 
 
-Skeleton = list[DimStrategy]   # one entry per dimension
+Skeleton = list[DimStrategy]
 
-
-# ============================================================
-# §5.2.1  Functional Mapping helpers
-# ============================================================
 
 def fit_functional_mapping(data: np.ndarray, x_dim: int, y_dim: int,
                            error_thresh: float = 0.10) -> Optional[DimStrategy]:
@@ -90,8 +76,8 @@ def fit_functional_mapping(data: np.ndarray, x_dim: int, y_dim: int,
     res = linregress(Y, X)
     X_pred = res.slope * Y + res.intercept
     residuals = X - X_pred
-    el = float(-residuals.min())   # lower error bound (positive)
-    eu = float( residuals.max())   # upper error bound (positive)
+    el = float(-residuals.min())
+    eu = float( residuals.max())
 
     y_range = Y.max() - Y.min() + 1e-12
     if (el + eu) / y_range <= error_thresh:
@@ -125,16 +111,12 @@ def apply_functional_mapping(strat: DimStrategy,
     """
     slope = strat.lr_slope
     if abs(slope) < 1e-12:
-        return -1e18, 1e18   # degenerate slope → no Y constraint
+        return -1e18, 1e18
 
     y1 = (x_lo - strat.eu - strat.lr_intercept) / slope
     y2 = (x_hi + strat.el - strat.lr_intercept) / slope
     return (min(y1, y2), max(y1, y2))
 
-
-# ============================================================
-# §5.2.2  Conditional CDF helpers
-# ============================================================
 
 def check_conditional_needed(data: np.ndarray, x_dim: int, y_dim: int,
                               p_x: int, p_y: int,
@@ -145,7 +127,6 @@ def check_conditional_needed(data: np.ndarray, x_dim: int, y_dim: int,
     """
     X = data[:, x_dim]
     Y = data[:, y_dim]
-    # build a p_x × p_y grid using independent quantile boundaries
     x_bounds = np.quantile(X, np.linspace(0, 1, p_x + 1))
     y_bounds = np.quantile(Y, np.linspace(0, 1, p_y + 1))
     occupied = 0
@@ -158,10 +139,6 @@ def check_conditional_needed(data: np.ndarray, x_dim: int, y_dim: int,
     empty_frac = 1.0 - occupied / (p_x * p_y)
     return empty_frac > empty_thresh
 
-
-# ============================================================
-# §5.2  Augmented Grid
-# ============================================================
 
 class AugmentedGrid:
     """
@@ -180,19 +157,14 @@ class AugmentedGrid:
                  n_partitions: list[int]):
         self.d          = data.shape[1]
         self.skeleton   = skeleton
-        self.n_parts    = n_partitions   # one entry per dim (0 if mapped)
+        self.n_parts    = n_partitions
         self._build(data)
 
-    # ------------------------------------------------------------------
-    # Build
-    # ------------------------------------------------------------------
 
     def _build(self, data: np.ndarray):
         """Pre-compute CDF boundaries and conditional histograms."""
         N, d = data.shape
         self.boundaries: list[Optional[np.ndarray]] = [None] * d
-        # For CONDITIONAL dims: store p_base histograms over the dep dim.
-        # cond_bounds[dep_dim] = array of shape (p_base, p_dep+1)
         self.cond_bounds: dict[int, np.ndarray] = {}
 
         for dim, strat in enumerate(self.skeleton):
@@ -201,28 +173,23 @@ class AugmentedGrid:
                 continue
 
             if strat.kind == StrategyKind.INDEPENDENT:
-                # CDF(X): quantile-based boundaries
                 quantiles = np.linspace(0, 1, p + 1)
                 self.boundaries[dim] = np.quantile(data[:, dim], quantiles)
 
             elif strat.kind == StrategyKind.FUNCTIONAL:
-                # Mapped dim: no own boundaries; target dim handles it.
                 pass
 
             elif strat.kind == StrategyKind.CONDITIONAL:
                 base_dim = strat.other_dim
                 p_base   = self.n_parts[base_dim]
                 if p_base < 2:
-                    p_base = 8   # base dim may be FUNCTIONAL (p=0); use a default
+                    p_base = 8
                 base_bds = self.boundaries[base_dim]
                 if base_bds is None:
-                    # Fallback: build base boundaries now
                     base_bds = np.quantile(data[:, base_dim],
                                            np.linspace(0, 1, p_base + 1))
                     self.boundaries[base_dim] = base_bds
 
-                # For each partition of base_dim, compute quantile boundaries
-                # of dim conditioned on being in that base partition.
                 cond = np.zeros((p_base, p + 1), dtype=float)
                 for k in range(p_base):
                     lo_b = base_bds[k]
@@ -236,18 +203,14 @@ class AugmentedGrid:
                     else:
                         cond[k] = np.quantile(sub, np.linspace(0, 1, p + 1))
                 self.cond_bounds[dim] = cond
-                self.boundaries[dim]  = None   # not used for CONDITIONAL
+                self.boundaries[dim]  = None
 
-        # Precompute the topo-sorted active dim list once.
-        # All cell keys (lookup table and queries) use this order so they match.
         raw_active = [
             dim for dim, strat in enumerate(self.skeleton)
             if self.n_parts[dim] >= 1 and strat.kind != StrategyKind.FUNCTIONAL
         ]
         self._active_dims: list[int] = self._topo_sort_dims(raw_active)
 
-        # Build lookup table: maps cell tuple → (start, end) in sorted storage
-        # Sort data by the grid cell order and store sorted indices.
         self._sort_data(data)
 
     def _cell_index(self, point: np.ndarray) -> tuple:
@@ -293,7 +256,6 @@ class AugmentedGrid:
                 self._vkeys = self._vstarts = self._vends = None
             return
 
-        # key_matrix[row, col] = partition index for that row in the col-th active dim
         key_matrix = np.zeros((N, n_active), dtype=np.int32)
 
         for col_idx, dim in enumerate(self._active_dims):
@@ -318,7 +280,7 @@ class AugmentedGrid:
                     p_base = 8
 
                 indices = np.zeros(N, dtype=np.int32)
-                for k in range(p_base):        # loop is over partitions (≤16), not rows
+                for k in range(p_base):
                     mask = (base_asgn == k)
                     if not mask.any():
                         continue
@@ -328,15 +290,12 @@ class AugmentedGrid:
                         indices[mask] = np.clip(idx, 0, p - 1)
                 key_matrix[:, col_idx] = indices
 
-        # Lexicographic sort: first active dim is primary key.
-        # np.lexsort uses last key as primary, so pass columns reversed.
         sort_keys = [key_matrix[:, i] for i in range(n_active - 1, -1, -1)]
         order     = np.lexsort(sort_keys)
         self.sorted_indices = order.astype(np.int64)
 
-        sorted_km = key_matrix[order]   # reordered cell-key matrix
+        sorted_km = key_matrix[order]
 
-        # Find group boundaries (positions where consecutive rows differ)
         if N > 1:
             diffs = np.any(sorted_km[1:] != sorted_km[:-1], axis=1)
             bdy   = np.concatenate(([0], np.where(diffs)[0] + 1, [N]))
@@ -346,7 +305,6 @@ class AugmentedGrid:
         starts = bdy[:-1]
         ends   = bdy[1:]
 
-        # Build lookup dict and vectorised query arrays in one pass
         self.lookup: dict[tuple, tuple[int, int]] = {}
         for i in range(len(starts)):
             key = tuple(int(x) for x in sorted_km[starts[i]])
@@ -356,16 +314,12 @@ class AugmentedGrid:
         self._vstarts = starts.astype(np.int64)
         self._vends   = ends.astype(np.int64)
 
-    # ------------------------------------------------------------------
-    # Query
-    # ------------------------------------------------------------------
 
     def query(self, q: Query) -> np.ndarray:
         """
         Return the sorted_indices of all candidate points for query q.
         The caller should verify the actual predicate match.
         """
-        # Apply functional mappings to tighten query filters (§5.2.1)
         adjusted = list(q.ranges)
         for dim, strat in enumerate(self.skeleton):
             if strat.kind == StrategyKind.FUNCTIONAL:
@@ -381,11 +335,8 @@ class AugmentedGrid:
         if self._vkeys is None or len(self._vkeys) == 0:
             return np.array([], dtype=np.int64)
 
-        # ── Vectorised cell matching ──────────────────────────────────────
-        # mask[j] = True  iff  cell j intersects the query on every active dim.
         mask = np.ones(len(self._vkeys), dtype=bool)
 
-        # Precompute base-dim column index in _active_dims for CONDITIONAL dims.
         cond_base_col: dict[int, int] = {}
         for i, dim in enumerate(self._active_dims):
             strat = self.skeleton[dim]
@@ -397,7 +348,7 @@ class AugmentedGrid:
 
         for i, dim in enumerate(self._active_dims):
             if not mask.any():
-                return np.array([], dtype=np.int64)   # all cells pruned
+                return np.array([], dtype=np.int64)
 
             strat = self.skeleton[dim]
             p     = self.n_parts[dim]
@@ -415,7 +366,6 @@ class AugmentedGrid:
             elif strat.kind == StrategyKind.CONDITIONAL:
                 base_col = cond_base_col.get(i, -1)
                 col_mask = np.zeros(len(self._vkeys), dtype=bool)
-                # Only evaluate still-alive cells to minimise work.
                 for j in np.where(mask)[0]:
                     base_k   = int(self._vkeys[j, base_col]) if base_col >= 0 else 0
                     k        = int(self._vkeys[j, i])
@@ -426,9 +376,6 @@ class AugmentedGrid:
                     col_mask[j] = (k >= first) and (k <= last)
                 mask &= col_mask
 
-        # ── Slice-based result assembly (no Python int list) ──────────────
-        # Each matching cell is a contiguous run in sorted_indices; concatenate
-        # the numpy views directly instead of building a flat position list.
         hits = np.where(mask)[0]
         if len(hits) == 0:
             return np.array([], dtype=np.int64)
@@ -440,7 +387,6 @@ class AugmentedGrid:
             return np.array([], dtype=np.int64)
         if len(hits) == 1:
             return self.sorted_indices[vstarts[0]:vends[0]].copy()
-        # Fully vectorised gather — avoids Python loop + slow np.concatenate on many tiny arrays
         repeated_starts = np.repeat(vstarts, sizes)
         local_offsets   = np.arange(total, dtype=np.int64) - np.repeat(
                               np.concatenate(([0], np.cumsum(sizes[:-1]))), sizes)
@@ -468,10 +414,6 @@ class AugmentedGrid:
         return ordered
 
 
-# ============================================================
-# §5.3.1  Cost Model
-# ============================================================
-
 def estimate_cost(data: np.ndarray, queries: list[Query],
                   skeleton: Skeleton, n_parts: list[int],
                   w0: float = 1.0, w1: float = 0.01) -> float:
@@ -492,7 +434,6 @@ def estimate_cost(data: np.ndarray, queries: list[Query],
         candidates = ag.query(q)
         n_scanned  = len(candidates)
 
-        # Estimate cell ranges as unique consecutive groups in sorted order
         if n_scanned == 0:
             continue
         sorted_pos = np.sort(candidates)
@@ -506,10 +447,6 @@ def estimate_cost(data: np.ndarray, queries: list[Query],
 
     return total_cost / len(sample)
 
-
-# ============================================================
-# §5.3  Skeleton heuristic initialiser
-# ============================================================
 
 def initialise_skeleton(data: np.ndarray,
                         fm_error_thresh: float = 0.10,
@@ -525,7 +462,6 @@ def initialise_skeleton(data: np.ndarray,
     skeleton: Skeleton = [DimStrategy(StrategyKind.INDEPENDENT)] * d
     n_parts  = [default_parts] * d
 
-    # Track which dims are already used as targets (cannot be mapped dims too)
     mapped_targets:    set[int] = set()
     conditional_bases: set[int] = set()
 
@@ -546,17 +482,16 @@ def initialise_skeleton(data: np.ndarray,
 
         if best_fm is not None:
             skeleton[x_dim]  = best_fm
-            n_parts[x_dim]   = 0        # mapped dim has no own partitions
+            n_parts[x_dim]   = 0
             mapped_targets.add(best_fm.other_dim)
             continue
 
-        # Try conditional CDF
         for y_dim in range(d):
             if y_dim == x_dim:
                 continue
             if skeleton[y_dim].kind in (StrategyKind.FUNCTIONAL,
                                         StrategyKind.CONDITIONAL):
-                continue   # base cannot itself be mapped or conditional
+                continue
             if y_dim in conditional_bases:
                 continue
             p_x = default_parts
@@ -573,10 +508,6 @@ def initialise_skeleton(data: np.ndarray,
     return skeleton, n_parts
 
 
-# ============================================================
-# §5.3.2  Adaptive Gradient Descent (AGD)
-# ============================================================
-
 def _neighbours(skeleton: Skeleton, n_parts: list[int],
                 dim: int, d: int) -> list[tuple[Skeleton, list[int]]]:
     """
@@ -588,27 +519,24 @@ def _neighbours(skeleton: Skeleton, n_parts: list[int],
 
     strategies_to_try = []
 
-    # Always try INDEPENDENT
     if current.kind != StrategyKind.INDEPENDENT:
         strategies_to_try.append(DimStrategy(StrategyKind.INDEPENDENT))
 
-    # Try FUNCTIONAL to each other dim
     for y in range(d):
         if y == dim:
             continue
         if skeleton[y].kind == StrategyKind.FUNCTIONAL:
-            continue   # target cannot itself be a mapped dim
+            continue
         new_strat = DimStrategy(StrategyKind.FUNCTIONAL, other_dim=y)
         if current.kind != StrategyKind.FUNCTIONAL or current.other_dim != y:
             strategies_to_try.append(new_strat)
 
-    # Try CONDITIONAL on each other dim
     for y in range(d):
         if y == dim:
             continue
         if skeleton[y].kind in (StrategyKind.FUNCTIONAL,
                                 StrategyKind.CONDITIONAL):
-            continue   # base cannot be mapped/conditional
+            continue
         new_strat = DimStrategy(StrategyKind.CONDITIONAL, other_dim=y)
         if current.kind != StrategyKind.CONDITIONAL or current.other_dim != y:
             strategies_to_try.append(new_strat)
@@ -621,7 +549,7 @@ def _neighbours(skeleton: Skeleton, n_parts: list[int],
             new_parts[dim] = 0
         else:
             if new_parts[dim] == 0:
-                new_parts[dim] = 4   # restore a default
+                new_parts[dim] = 4
         neighbours.append((new_skel, new_parts))
 
     return neighbours
@@ -645,9 +573,7 @@ def optimise_augmented_grid(
     """
     d = data.shape[1]
 
-    # Step 1: heuristic initialisation
     skeleton, n_parts = initialise_skeleton(data)
-    # Re-fit functional mappings on actual data
     for dim, strat in enumerate(skeleton):
         if strat.kind == StrategyKind.FUNCTIONAL:
             fitted = fit_functional_mapping(data, dim, strat.other_dim)
@@ -661,7 +587,6 @@ def optimise_augmented_grid(
     for iteration in range(max_iter):
         improved = False
 
-        # Step 2: gradient descent over n_parts
         for dim in range(d):
             if n_parts[dim] == 0:
                 continue
@@ -676,9 +601,9 @@ def optimise_augmented_grid(
                 w0, w1)
 
             grad = cost_plus - cost_minus
-            if grad > 0:   # decreasing parts reduces cost
+            if grad > 0:
                 n_parts[dim] = max(min_parts, n_parts[dim] - int(lr) - 1)
-            elif grad < 0: # increasing parts reduces cost
+            elif grad < 0:
                 n_parts[dim] = min(max_parts, n_parts[dim] + int(lr) + 1)
 
         current_cost = estimate_cost(data, queries, skeleton, n_parts, w0, w1)
@@ -688,10 +613,8 @@ def optimise_augmented_grid(
             best_parts    = list(n_parts)
             improved      = True
 
-        # Step 3: local search over skeletons (one hop)
         for dim in range(d):
             for new_skel, new_parts in _neighbours(skeleton, n_parts, dim, d):
-                # Re-fit FM parameters
                 for d2, s2 in enumerate(new_skel):
                     if s2.kind == StrategyKind.FUNCTIONAL:
                         fitted = fit_functional_mapping(data, d2, s2.other_dim)
@@ -717,12 +640,6 @@ def optimise_augmented_grid(
     return best_skeleton, best_parts
 
 
-# ============================================================
-# Full Tsunami-style index: Grid Tree + Augmented Grid per leaf
-# ============================================================
-
-# (Minimal Grid Tree re-implementation to keep this file self-contained)
-
 @dataclass
 class _GTNode:
     lo: np.ndarray
@@ -747,7 +664,6 @@ def _gt_split(node: _GTNode, data: np.ndarray, queries: list[Query],
     for dim in range(d):
         vals = data[node.point_idx, dim]
         mid  = np.median(vals)
-        # simple skew proxy: std of query coverage on each side
         left_q  = [q for q in queries if q.ranges[dim][0] < mid]
         right_q = [q for q in queries if q.ranges[dim][1] > mid]
         score = abs(len(left_q) - len(right_q))
@@ -818,13 +734,11 @@ class TsunamiIndex:
             pts = data[node.point_idx]
             if len(pts) < 4:
                 return
-            # Only keep queries that intersect this leaf region
             leaf_q = [q for q in queries if self._intersects(node, q)]
             if not leaf_q:
-                leaf_q = queries[:10]   # fallback sample
+                leaf_q = queries[:10]
             skel, parts = optimise_augmented_grid(
                 pts, leaf_q, max_iter=self.agd_iter)
-            # Re-index: AugmentedGrid is built on local pts; we remap later
             node.aug_grid = AugmentedGrid(pts, skel, parts)
             return
         for child in node.children:
@@ -846,7 +760,6 @@ class TsunamiIndex:
         if not results:
             return np.array([], dtype=np.int64)
         candidates = np.concatenate(results)
-        # Final predicate check
         data = self._data
         mask = np.ones(len(candidates), dtype=bool)
         for dim in range(data.shape[1]):
@@ -860,7 +773,6 @@ class TsunamiIndex:
             return
         if node.is_leaf:
             if node.aug_grid is not None:
-                # AugmentedGrid was built on local pts → remap to global
                 local_q = Query([
                     (max(q.ranges[dim][0], node.lo[dim]),
                      min(q.ranges[dim][1], node.hi[dim]))
@@ -876,26 +788,15 @@ class TsunamiIndex:
             self._traverse(child, q, results)
 
 
-# ============================================================
-# Demo
-# ============================================================
-
 if __name__ == "__main__":
     np.random.seed(0)
 
-    # -------------------------------------------------------
-    # Dataset: 5000 points, 2-D, with strong linear correlation
-    # dim0 = uniform, dim1 = 0.8*dim0 + noise
-    # -------------------------------------------------------
     N = 5_000
     dim0 = np.random.uniform(0, 100, N)
     dim1 = 0.8 * dim0 + np.random.normal(0, 5, N)
     dim1 = np.clip(dim1, 0, 100)
     data = np.column_stack([dim0, dim1])
 
-    # -------------------------------------------------------
-    # Queries: skewed — many narrow queries in upper region
-    # -------------------------------------------------------
     queries = (
         [Query([(np.random.uniform(60, 90), np.random.uniform(65, 95)),
                 (np.random.uniform(60, 90), np.random.uniform(65, 95))])
@@ -923,12 +824,10 @@ if __name__ == "__main__":
     test_q = Query([(65.0, 85.0), (50.0, 75.0)])
     candidates = ag.query(test_q)
 
-    # Brute-force ground truth
     mask_gt = ((data[:, 0] >= 65) & (data[:, 0] <= 85) &
                (data[:, 1] >= 50) & (data[:, 1] <= 75))
     gt = np.where(mask_gt)[0]
 
-    # Filter candidates to actual matches
     if len(candidates) > 0:
         match_mask = ((data[candidates, 0] >= 65) & (data[candidates, 0] <= 85) &
                       (data[candidates, 1] >= 50) & (data[candidates, 1] <= 75))

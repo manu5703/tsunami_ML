@@ -34,17 +34,11 @@ import numpy as np
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Optional
-# Import shared types from augmented_grid so both modules use the same enum
-# objects — this prevents comparison failures inside AugmentedGrid._build.
 from augmented_grid import (
     StrategyKind, DimStrategy, Skeleton,
     fit_functional_mapping, initialise_skeleton,
 )
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Query type (local — only used within this module)
-# ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class Query:
@@ -56,10 +50,6 @@ class Query:
         return len(self.ranges)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# §5.3.1  Cost Model
-# ─────────────────────────────────────────────────────────────────────────────
-
 @dataclass
 class CostModelWeights:
     """
@@ -69,8 +59,8 @@ class CostModelWeights:
          cache-miss penalty for jumping to a new storage range.
     w1 : time (seconds) to scan one point across one filtered dimension.
     """
-    w0: float = 1.0e-6   # ~1 µs per cell-range boundary (cache miss)
-    w1: float = 2.0e-9   # ~2 ns per point per dimension (L1/L2 scan)
+    w0: float = 1.0e-6
+    w1: float = 2.0e-9
 
 
 class CostModel:
@@ -103,9 +93,8 @@ class CostModel:
         self.weights     = weights or CostModelWeights()
         self.sample_frac = sample_frac
         self._sample_idx = self._draw_sample()
-        self._call_count = 0          # tracks how many evaluations we've done
+        self._call_count = 0
 
-    # ── public ───────────────────────────────────────────────────────────────
 
     def predict(self, skeleton: Skeleton, n_parts: list[int]) -> float:
         """
@@ -135,8 +124,6 @@ class CostModel:
 
         Returns the fitted CostModelWeights and updates self.weights.
         """
-        # We need the AugmentedGrid to run real timings.
-        # Import lazily to avoid circular dependency in production.
         try:
             from augmented_grid import AugmentedGrid
         except ImportError:
@@ -146,7 +133,6 @@ class CostModel:
 
         ag = AugmentedGrid(self.data, skeleton, n_parts)
 
-        # ── bench_w0: point queries (1 cell each) ─────────────────────────
         point_queries = self._make_point_queries(20)
         t0 = time.perf_counter()
         for _ in range(n_repeats):
@@ -154,15 +140,12 @@ class CostModel:
                 ag.query(pq)
         t_point = (time.perf_counter() - t0) / (n_repeats * len(point_queries))
 
-        # Expected features for a point query: R≈1, S≈small, F=active dims
         f_active = sum(1 for dim, s in enumerate(skeleton)
                        if s.is_active() and n_parts[dim] > 0)
-        # Estimate S for point queries
         s_point = max(1, len(self.data) / math.prod(
             max(1, n_parts[dim]) for dim, s in enumerate(skeleton)
             if s.is_active() and n_parts[dim] > 0) or 1)
 
-        # ── bench_w1: wide queries (many points, few ranges) ──────────────
         wide_queries = self._make_wide_queries(10)
         t0 = time.perf_counter()
         for _ in range(n_repeats):
@@ -170,17 +153,11 @@ class CostModel:
                 ag.query(wq)
         t_wide = (time.perf_counter() - t0) / (n_repeats * len(wide_queries))
 
-        # Wide queries: R≈1 (nearly one big range), S ≈ many points
-        s_wide = len(self.data) * 0.5   # ~50% selectivity for a "wide" query
+        s_wide = len(self.data) * 0.5
 
-        # Solve 2×2 system:
-        #   t_point = w0 * 1       + w1 * s_point * f_active
-        #   t_wide  = w0 * 1       + w1 * s_wide  * f_active
-        # → w1 = (t_wide - t_point) / ((s_wide - s_point) * f_active)
-        # → w0 = t_point - w1 * s_point * f_active
         denom = (s_wide - s_point) * max(1, f_active)
         if abs(denom) < 1e-15:
-            return self.weights   # degenerate; keep defaults
+            return self.weights
 
         w1 = max(1e-12, (t_wide - t_point) / denom)
         w0 = max(1e-12, t_point - w1 * s_point * f_active)
@@ -225,7 +202,6 @@ class CostModel:
             "relative_error":  rel_err,
         }
 
-    # ── private ──────────────────────────────────────────────────────────────
 
     def _features(self,
                   q:        Query,
@@ -241,11 +217,9 @@ class CostModel:
         d     = self.data.shape[1]
         N     = len(self.data)
 
-        # F: non-mapped active dimensions
         F = sum(1 for dim in range(d)
                 if skeleton[dim].is_active() and n_parts[dim] > 0)
 
-        # Estimate fraction of cells that intersect the query
         frac = 1.0
         for dim in range(d):
             strat = skeleton[dim]
@@ -259,8 +233,6 @@ class CostModel:
             domain_len = dhi - dlo
 
             if strat.kind == StrategyKind.FUNCTIONAL:
-                # mapped dim: after applying FM the effective range shrinks
-                # approximate: use the FM error bounds to tighten the filter
                 eff_lo, eff_hi = self._apply_fm_approx(strat, qlo, qhi)
                 q_len = max(0.0, eff_hi - eff_lo)
             else:
@@ -269,20 +241,13 @@ class CostModel:
             part_hit_frac = min(1.0, q_len / domain_len + 1.0 / p)
             frac *= part_hit_frac
 
-        # S: expected scanned points
         S = max(1.0, frac * N)
 
-        # R: expected number of cell ranges
-        # Each intersected cell can be a separate range; in practice cells that
-        # are adjacent in the last active dimension merge into one range.
-        # Approximate: #ranges ≈ product of intersecting partitions in all dims
-        # except the innermost sort dimension.
         R = max(1.0, S / max(1, N / max(1, math.prod(
             max(1, n_parts[dim])
             for dim in range(d)
             if skeleton[dim].is_active() and n_parts[dim] > 0
         ) or 1)))
-        # simple lower-bound: at least 1 range per distinct row in higher dims
         R = max(1.0, R)
 
         return R, S, F
@@ -328,10 +293,6 @@ class CostModel:
         return queries
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# §5.3.2  Skeleton neighbourhood
-# ─────────────────────────────────────────────────────────────────────────────
-
 class SkeletonNeighbours:
     """
     Generate all skeletons that differ from the current one by exactly one
@@ -357,7 +318,6 @@ class SkeletonNeighbours:
         result    = []
         current   = skeleton[dim]
 
-        # Which dims are currently used as FM targets / CCDF bases?
         fm_targets   = {s.other_dim for s in skeleton
                         if s.kind == StrategyKind.FUNCTIONAL and s.other_dim is not None}
         ccdf_bases   = {s.other_dim for s in skeleton
@@ -365,46 +325,38 @@ class SkeletonNeighbours:
 
         candidates: list[DimStrategy] = []
 
-        # ── 1. INDEPENDENT ────────────────────────────────────────────────
         if current.kind != StrategyKind.INDEPENDENT:
             candidates.append(DimStrategy(StrategyKind.INDEPENDENT))
 
-        # ── 2. FUNCTIONAL to each eligible target ─────────────────────────
         for y in range(self.d):
             if y == dim:
                 continue
-            # target cannot be a mapped dim itself
             if skeleton[y].kind == StrategyKind.FUNCTIONAL:
                 continue
-            # don't re-propose current strategy
             if current.kind == StrategyKind.FUNCTIONAL and current.other_dim == y:
                 continue
             strat = fit_functional_mapping(self.data, dim, y)
             if strat is not None:
                 candidates.append(strat)
 
-        # ── 3. CONDITIONAL on each eligible base ──────────────────────────
         for y in range(self.d):
             if y == dim:
                 continue
-            # base cannot itself be mapped or conditional
             if skeleton[y].kind in (StrategyKind.FUNCTIONAL,
                                     StrategyKind.CONDITIONAL):
                 continue
-            # don't re-propose current strategy
             if current.kind == StrategyKind.CONDITIONAL and current.other_dim == y:
                 continue
             candidates.append(DimStrategy(StrategyKind.CONDITIONAL, other_dim=y))
 
-        # ── Build (skeleton, n_parts) pairs ──────────────────────────────
         for cand in candidates:
             new_skel  = list(skeleton)
             new_skel[dim] = cand
             new_parts = list(n_parts)
             if cand.kind == StrategyKind.FUNCTIONAL:
-                new_parts[dim] = 0          # mapped dims have no own partitions
+                new_parts[dim] = 0
             elif new_parts[dim] == 0:
-                new_parts[dim] = default_parts   # restore
+                new_parts[dim] = default_parts
             result.append((new_skel, new_parts))
 
         return result
@@ -424,20 +376,16 @@ class SkeletonNeighbours:
         return out
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# §5.3.2  Adaptive Gradient Descent
-# ─────────────────────────────────────────────────────────────────────────────
-
 @dataclass
 class AGDConfig:
     """Hyperparameters for the AGD optimiser."""
-    max_iter:        int   = 30      # maximum outer iterations
-    min_parts:       int   = 2       # minimum partitions per active dim
-    max_parts:       int   = 64      # maximum partitions per active dim
-    part_step:       int   = 2       # step size for partition gradient
-    convergence_tol: float = 1e-4    # stop if relative improvement < tol
-    sample_frac:     float = 0.30    # fraction of queries used per eval
-    verbose:         bool  = False   # print iteration log
+    max_iter:        int   = 30
+    min_parts:       int   = 2
+    max_parts:       int   = 64
+    part_step:       int   = 2
+    convergence_tol: float = 1e-4
+    sample_frac:     float = 0.30
+    verbose:         bool  = False
 
 
 @dataclass
@@ -496,7 +444,6 @@ class AGDOptimizer:
                                   weights=weights,
                                   sample_frac=self.config.sample_frac)
 
-    # ── public ───────────────────────────────────────────────────────────────
 
     def run(self,
             init_skeleton: Optional[Skeleton]   = None,
@@ -510,10 +457,8 @@ class AGDOptimizer:
         """
         cfg = self.config
 
-        # ── Step 1: initialise ────────────────────────────────────────────
         if init_skeleton is None or init_n_parts is None:
             skeleton, n_parts = initialise_skeleton(self.data)
-            # re-fit FM parameters on actual data
             for dim, strat in enumerate(skeleton):
                 if strat.kind == StrategyKind.FUNCTIONAL:
                     fitted = fit_functional_mapping(
@@ -538,11 +483,9 @@ class AGDOptimizer:
 
         for iteration in range(1, cfg.max_iter + 1):
 
-            # ── Step 2: gradient descent over P ──────────────────────────
             skeleton, n_parts, best_cost = self._gradient_step_P(
                 skeleton, n_parts, best_cost)
 
-            # ── Step 3: local skeleton search ────────────────────────────
             skeleton, n_parts, best_cost = self._local_search_S(
                 skeleton, n_parts, best_cost)
 
@@ -552,7 +495,6 @@ class AGDOptimizer:
                 print(f"[AGD] iter={iteration:2d}  cost={best_cost:.6e}  "
                       f"skel={[str(s) for s in skeleton]}  parts={n_parts}")
 
-            # ── convergence check ─────────────────────────────────────────
             rel_improvement = (prev_cost - best_cost) / max(prev_cost, 1e-15)
             if rel_improvement < cfg.convergence_tol and iteration > 2:
                 if cfg.verbose:
@@ -581,7 +523,6 @@ class AGDOptimizer:
         parts_ni = [self.config.min_parts * 2] * d
         return self.run(init_skeleton=skel_ni, init_n_parts=parts_ni)
 
-    # ── private ──────────────────────────────────────────────────────────────
 
     def _gradient_step_P(self,
                          skeleton:   Skeleton,
@@ -597,7 +538,7 @@ class AGDOptimizer:
           - move in whichever direction is cheaper; stay if neither helps.
         """
         cfg      = self.config
-        n_parts  = list(n_parts)   # work on a copy
+        n_parts  = list(n_parts)
 
         for dim in range(self.data.shape[1]):
             if not skeleton[dim].is_active() or n_parts[dim] == 0:
@@ -605,7 +546,6 @@ class AGDOptimizer:
 
             p_cur = n_parts[dim]
 
-            # Cost at p - step
             if p_cur - cfg.part_step >= cfg.min_parts:
                 p_lo          = list(n_parts)
                 p_lo[dim]     = p_cur - cfg.part_step
@@ -613,7 +553,6 @@ class AGDOptimizer:
             else:
                 cost_lo       = float("inf")
 
-            # Cost at p + step
             if p_cur + cfg.part_step <= cfg.max_parts:
                 p_hi          = list(n_parts)
                 p_hi[dim]     = p_cur + cfg.part_step
@@ -647,7 +586,6 @@ class AGDOptimizer:
         for cand_skel, cand_parts, changed_dim in \
                 self.nbrs.all_neighbours(skeleton, n_parts):
 
-            # Re-fit FM parameters on actual data for any functional mappings
             for dim, strat in enumerate(cand_skel):
                 if strat.kind == StrategyKind.FUNCTIONAL:
                     fitted = fit_functional_mapping(
@@ -655,7 +593,6 @@ class AGDOptimizer:
                     if fitted is not None:
                         cand_skel[dim] = fitted
                     else:
-                        # FM not viable after re-fit → fall back to INDEPENDENT
                         cand_skel[dim]   = DimStrategy(StrategyKind.INDEPENDENT)
                         cand_parts[dim]  = self.config.min_parts * 2
 
@@ -665,10 +602,6 @@ class AGDOptimizer:
 
         return skeleton, n_parts, best_cost
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Convenience entry point
-# ─────────────────────────────────────────────────────────────────────────────
 
 def optimise(data:    np.ndarray,
              queries: list[Query],
@@ -700,45 +633,33 @@ def optimise(data:    np.ndarray,
     return optimizer.run()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Demo
-# ─────────────────────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
     np.random.seed(0)
     print("=" * 60)
     print("Tsunami Cost Model + AGD Optimizer — demo")
     print("=" * 60)
 
-    # ── Dataset: 3-D, 8000 points ──────────────────────────────────────────
-    # dim0: uniform
-    # dim1: strongly correlated with dim0  (tight linear → FM should fire)
-    # dim2: loosely correlated with dim0   (CCDF expected)
     N = 8_000
     dim0 = np.random.uniform(0, 100, N)
-    dim1 = 0.85 * dim0 + np.random.normal(0, 2,  N)   # tight
-    dim2 = 0.50 * dim0 + np.random.normal(0, 15, N)   # loose
+    dim1 = 0.85 * dim0 + np.random.normal(0, 2,  N)
+    dim2 = 0.50 * dim0 + np.random.normal(0, 15, N)
     dim1 = np.clip(dim1, 0, 100)
     dim2 = np.clip(dim2, 0, 100)
     data = np.column_stack([dim0, dim1, dim2])
 
-    # ── Workload: skewed — many narrow queries in high-value region ─────────
     rng = np.random.default_rng(42)
     queries = (
-        # narrow queries in upper region (skewed)
         [Query([(float(lo), float(lo + 10)),
                 (float(lo), float(lo + 10)),
                 (float(lo), float(lo + 10))])
          for lo in rng.uniform(60, 90, 80)]
         +
-        # wide queries across the full space
         [Query([(float(lo), float(lo + 40)),
                 (float(lo), float(lo + 40)),
                 (float(lo), float(lo + 40))])
          for lo in rng.uniform(0, 60, 40)]
     )
 
-    # ── 1. Cost Model stand-alone ───────────────────────────────────────────
     print("\n── 1. Cost Model feature estimation ──")
     skel0, parts0 = initialise_skeleton(data)
     print(f"  Initial skeleton : {[str(s) for s in skel0]}")
@@ -749,7 +670,6 @@ if __name__ == "__main__":
     print(f"  Predicted cost   : {cost0:.4e} s/query")
     print(f"  Cost model calls : {model._call_count}")
 
-    # ── 2. Run full AGD ─────────────────────────────────────────────────────
     print("\n── 2. Adaptive Gradient Descent ──")
     cfg    = AGDConfig(max_iter=25, part_step=2, verbose=True)
     result = optimise(data, queries, config=cfg)
@@ -762,7 +682,6 @@ if __name__ == "__main__":
     print(f"  Iterations       : {result.n_iterations}")
     print(f"  Cost model calls : {result.n_cost_evals}")
 
-    # ── 3. AGD-NI (naive init) vs AGD ──────────────────────────────────────
     print("\n── 3. AGD-NI (naive skeleton init) ──")
     optimizer = AGDOptimizer(data, queries,
                              config=AGDConfig(max_iter=25, verbose=False))
@@ -773,7 +692,6 @@ if __name__ == "__main__":
     winner = "AGD" if result.best_cost <= result_ni.best_cost else "AGD-NI"
     print(f"  Winner           : {winner}")
 
-    # ── 4. Neighbour enumeration sanity check ───────────────────────────────
     print("\n── 4. Skeleton neighbourhood (dim 1) ──")
     nbrs = SkeletonNeighbours(data)
     hops = nbrs.neighbours(result.skeleton, result.n_parts, dim=1)
@@ -786,7 +704,6 @@ if __name__ == "__main__":
     if len(hops) > 3:
         print(f"    ... ({len(hops) - 3} more)")
 
-    # ── 5. Cost history ─────────────────────────────────────────────────────
     print("\n── 5. Cost history ──")
     for i, c in enumerate(result.history):
         bar = "█" * int(40 * c / max(result.history))
