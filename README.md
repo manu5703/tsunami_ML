@@ -1,5 +1,10 @@
 ## 1. Implementation steps
 
+**Clone the repo**
+```bash
+git clone 
+```
+
 **Build the image**
 
 ```bash
